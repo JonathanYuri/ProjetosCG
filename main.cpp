@@ -2,7 +2,6 @@
 #include <vector>
 #include <GL/glut.h>
 #include <string>
-#include <string.h>
 
 using namespace std;
 
@@ -36,9 +35,14 @@ float posicoes_barrasT[] = { -0.6, 0, 0,
 
 
 float cam = 1;
-float camX = 0;
-float camY = 0;
-float camZ = 5;
+
+float camInitialX = 0;
+float camInitialY = 0;
+float camInitialZ = 5;
+
+float camX = camInitialX;
+float camY = camInitialY;
+float camZ = camInitialZ;
 
 float targetInitialXcam = 0;
 float targetInitialYcam = 0;
@@ -422,6 +426,10 @@ void keyboard_handler(unsigned char key, int x, int y)
         cam = 1;
 
         // zerar a camera
+        camX = camInitialX;
+        camY = camInitialY;
+        camZ = camInitialZ;
+
         targetXcam = targetInitialXcam;
         targetYcam = targetInitialYcam;
         targetZcam = targetInitialZcam;
@@ -431,6 +439,10 @@ void keyboard_handler(unsigned char key, int x, int y)
         cam = 2;
 
         // zerar a camera
+        camX = camInitialX;
+        camY = camInitialY;
+        camZ = camInitialZ;
+
         targetXcam = targetInitialXcam;
         targetYcam = targetInitialYcam;
         targetZcam = targetInitialZcam;
@@ -440,6 +452,10 @@ void keyboard_handler(unsigned char key, int x, int y)
         cam = 3;
 
         // zerar a camera
+        camX = camInitialX;
+        camY = camInitialY;
+        camZ = camInitialZ;
+
         targetXcam = targetInitialXcam;
         targetYcam = targetInitialYcam;
         targetZcam = targetInitialZcam;
