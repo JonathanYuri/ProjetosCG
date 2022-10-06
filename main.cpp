@@ -2,12 +2,9 @@
 #include <vector>
 #include <GL/glut.h>
 #include <string>
+#include <string.h>
 
 using namespace std;
-
-float rotateX = 0;
-float rotateY = 0;
-float rotateZ = 0;
 
 float qntRotate = 0.1;
 
@@ -84,19 +81,6 @@ void draw_bar_1()
     glPushMatrix();
     glTranslatef(posicoes_barras[0] + (tamanho_barra.x / 2), posicoes_barras[1], proximidade_da_camera + posicoes_barras[2]);
 
-    if (rotateX != 0)
-    {
-        glRotatef(rotateX, 1, 0, 0);
-    }
-    if (rotateY != 0)
-    {
-        glRotatef(rotateY, 0, 1, 0);
-    }
-    if (rotateZ != 0)
-    {
-        glRotatef(rotateZ, 0, 0, 1);
-    }
-
     glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0));
     glScalef(tamanho_barra.x, tamanho_barra.y, tamanho_barra.z);
     glutSolidCube(1.0);
@@ -108,19 +92,6 @@ void draw_bar_2()
 {
     glPushMatrix();
     glTranslatef(posicoes_barras[3] + (tamanho_barra.x / 2), posicoes_barras[4], proximidade_da_camera + posicoes_barras[5]);
-
-    if (rotateX != 0)
-    {
-        glRotatef(rotateX, 1, 0, 0);
-    }
-    if (rotateY != 0)
-    {
-        glRotatef(rotateY, 0, 1, 0);
-    }
-    if (rotateZ != 0)
-    {
-        glRotatef(rotateZ, 0, 0, 1);
-    }
 
     glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0));
     glScalef(tamanho_barra.x, tamanho_barra.y, tamanho_barra.z);
@@ -135,19 +106,6 @@ void draw_bar_3()
     glPushMatrix();
     glTranslatef(posicoes_barras[6] - (tamanho_barra.x / 2), posicoes_barras[7], proximidade_da_camera + posicoes_barras[8]);
 
-    if (rotateX != 0)
-    {
-        glRotatef(rotateX, 1, 0, 0);
-    }
-    if (rotateY != 0)
-    {
-        glRotatef(rotateY, 0, 1, 0);
-    }
-    if (rotateZ != 0)
-    {
-        glRotatef(rotateZ, 0, 0, 1);
-    }
-
     glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0));
     glScalef(tamanho_barra.x, tamanho_barra.y, tamanho_barra.z);
 
@@ -160,19 +118,6 @@ void draw_bar_4()
 {
     glPushMatrix();
     glTranslatef(posicoes_barras[9] - (tamanho_barra.x / 2), posicoes_barras[10], proximidade_da_camera + posicoes_barras[11]);
-
-    if (rotateX != 0)
-    {
-        glRotatef(rotateX, 1, 0, 0);
-    }
-    if (rotateY != 0)
-    {
-        glRotatef(rotateY, 0, 1, 0);
-    }
-    if (rotateZ != 0)
-    {
-        glRotatef(rotateZ, 0, 0, 1);
-    }
 
     glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0));
     glScalef(tamanho_barra.x, tamanho_barra.y, tamanho_barra.z);
@@ -187,19 +132,6 @@ void draw_barT1()
     glPushMatrix();
     glTranslatef(posicoes_barrasT[0] + (tamanho_barra.x / 2), posicoes_barrasT[1], proximidade_da_camera + posicoes_barrasT[2]);
 
-    if (rotateX != 0)
-    {
-        glRotatef(rotateX, 1, 0, 0);
-    }
-    if (rotateY != 0)
-    {
-        glRotatef(rotateY, 0, 1, 0);
-    }
-    if (rotateZ != 0)
-    {
-        glRotatef(rotateZ, 0, 0, 1);
-    }
-
     glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0) + (tamanho_barra.z / 2));
     glScalef(tamanho_barraT.x, tamanho_barraT.y, tamanho_barraT.z);
 
@@ -212,19 +144,6 @@ void draw_barT2()
 {
     glPushMatrix();
     glTranslatef(posicoes_barrasT[3] - (tamanho_barra.x / 2), posicoes_barrasT[4], proximidade_da_camera + posicoes_barrasT[5]);
-
-    if (rotateX != 0)
-    {
-        glRotatef(rotateX, 1, 0, 0);
-    }
-    if (rotateY != 0)
-    {
-        glRotatef(rotateY, 0, 1, 0);
-    }
-    if (rotateZ != 0)
-    {
-        glRotatef(rotateZ, 0, 0, 1);
-    }
 
     glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0) + (tamanho_barra.z / 2));
     glScalef(tamanho_barraT.x, tamanho_barraT.y, tamanho_barraT.z);
@@ -255,19 +174,6 @@ void draw_field()
     glPushMatrix();
     glTranslatef(.0, .0, proximidade_da_camera);
 
-    if (rotateX != 0)
-    {
-        glRotatef(rotateX, 1, 0, 0);
-    }
-    if (rotateY != 0)
-    {
-        glRotatef(rotateY, 0, 1, 0);
-    }
-    if (rotateZ != 0)
-    {
-        glRotatef(rotateZ, 0, 0, 1);
-    }
-
     glScalef(tamanho_campo.x, tamanho_campo.y, tamanho_campo.z);
     glutWireCube(1.0);
     glPopMatrix();
@@ -277,7 +183,20 @@ void draw_ball()
 {
     glPushMatrix();
     glTranslatef(positionBallX, positionBallY, proximidade_da_camera + raioBola + (tamanho_campo.z / 2));
+
+    float f = 1000.0;
+
+    cout << positionBallX * f << " " << positionBallY * f << endl;
+
+    glPushMatrix();
+
+    glRotatef(positionBallX * f, 0, 1, 0);
+    glRotatef(positionBallY * f, 1, 0, 0);
     glutWireSphere(raioBola, 30, 30);
+    // testar rotacao: raioBola * 100.0
+
+    glPopMatrix();
+
     glPopMatrix();
 }
 
@@ -395,8 +314,7 @@ void keyboard_handler(unsigned char key, int x, int y)
         positionBallX = positionInitialBallX;
         positionBallY = positionInitialBallY;
     }
-
-    if (positionBallX <= posicoes_barras[0])
+    else if (positionBallX <= posicoes_barras[0])
     {
         if (positionBallY <= posicoes_barras[1] && positionBallY >= posicoes_barras[4])
         {
@@ -479,13 +397,13 @@ void camera_move(int key, int x, int y)
     }
     if (key == GLUT_KEY_LEFT)
     {
-        camX -= qntRotate;
-        targetXcam -= qntRotate;
+        camX += qntRotate;
+        targetXcam += qntRotate;
     }
     if (key == GLUT_KEY_RIGHT)
     {
-        camX += qntRotate;
-        targetXcam += qntRotate;
+        camX -= qntRotate;
+        targetXcam -= qntRotate;
     }
 }
 
