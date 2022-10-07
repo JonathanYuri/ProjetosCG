@@ -40,6 +40,8 @@ float camInitialZ = 5;
 float camX = camInitialX;
 float camY = camInitialY;
 float camZ = camInitialZ;
+int slices = 30;
+int stacks = 30;
 
 float targetInitialXcam = 0;
 float targetInitialYcam = 0;
@@ -50,6 +52,7 @@ float targetYcam = targetInitialYcam;
 float targetZcam = targetInitialZcam;
 
 float velocidadeBola = 0.01;
+float velocidadeRotacaoBola = 1000.0;
 
 float positionInitialBallX = 0;
 float positionInitialBallY = 0;
@@ -184,15 +187,13 @@ void draw_ball()
     glPushMatrix();
     glTranslatef(positionBallX, positionBallY, proximidade_da_camera + raioBola + (tamanho_campo.z / 2));
 
-    float f = 1000.0;
-
-    cout << positionBallX * f << " " << positionBallY * f << endl;
+    //cout << positionBallX * f << " " << positionBallY * f << endl;
 
     glPushMatrix();
 
-    glRotatef(positionBallX * f, 0, 1, 0);
-    glRotatef(positionBallY * f, 1, 0, 0);
-    glutWireSphere(raioBola, 30, 30);
+    glRotatef(positionBallX * velocidadeRotacaoBola, 0, 1, 0);
+    glRotatef(positionBallY * velocidadeRotacaoBola, 1, 0, 0);
+    glutWireSphere(raioBola, slices, stacks);
     // testar rotacao: raioBola * 100.0
 
     glPopMatrix();
@@ -218,9 +219,9 @@ void displayFcn(void) {
     if (cam == 1)
     {
         gluLookAt(camX, camY, camZ,
-                  targetXcam, targetYcam, targetZcam,
-                  //0, 0, 0.5,
-                  0, 1, 0);
+            targetXcam, targetYcam, targetZcam,
+            //0, 0, 0.5,
+            0, 1, 0);
     }
     else if (cam == 2)
     {
