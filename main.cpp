@@ -1,8 +1,6 @@
-﻿#include <iostream>
-#include <vector>
+#include <iostream>
 #include <GL/glut.h>
 #include <string>
-#include <string.h>
 
 using namespace std;
 
@@ -30,8 +28,7 @@ float posicoes_barras[] = { -0.6, 0.0366, 0,
 float posicoes_barrasT[] = { -0.6, 0, 0,
                            0.6, 0, 0 };
 
-
-float cam = 1;
+char cameraMode = '1';
 
 float camInitialX = 0;
 float camInitialY = 0;
@@ -79,10 +76,12 @@ void init(void) {
     glMatrixMode(GL_MODELVIEW);
 }
 
-void draw_bar_1()
+void draw_bar(int indice)
 {
     glPushMatrix();
-    glTranslatef(posicoes_barras[0] + (tamanho_barra.x / 2), posicoes_barras[1], proximidade_da_camera + posicoes_barras[2]);
+
+    if (indice < 6) glTranslatef(posicoes_barras[indice] + (tamanho_barra.x / 2), posicoes_barras[indice+1], proximidade_da_camera + posicoes_barras[indice+2]);
+    else            glTranslatef(posicoes_barras[indice] - (tamanho_barra.x / 2), posicoes_barras[indice + 1], proximidade_da_camera + posicoes_barras[indice + 2]);
 
     glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0));
     glScalef(tamanho_barra.x, tamanho_barra.y, tamanho_barra.z);
@@ -91,63 +90,13 @@ void draw_bar_1()
     glPopMatrix();
 }
 
-void draw_bar_2()
+void draw_barT(int indice)
 {
     glPushMatrix();
-    glTranslatef(posicoes_barras[3] + (tamanho_barra.x / 2), posicoes_barras[4], proximidade_da_camera + posicoes_barras[5]);
 
-    glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0));
-    glScalef(tamanho_barra.x, tamanho_barra.y, tamanho_barra.z);
-
-    glutSolidCube(1.0);
-
-    glPopMatrix();
-}
-
-void draw_bar_3()
-{
-    glPushMatrix();
-    glTranslatef(posicoes_barras[6] - (tamanho_barra.x / 2), posicoes_barras[7], proximidade_da_camera + posicoes_barras[8]);
-
-    glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0));
-    glScalef(tamanho_barra.x, tamanho_barra.y, tamanho_barra.z);
-
-    glutSolidCube(1.0);
-
-    glPopMatrix();
-}
-
-void draw_bar_4()
-{
-    glPushMatrix();
-    glTranslatef(posicoes_barras[9] - (tamanho_barra.x / 2), posicoes_barras[10], proximidade_da_camera + posicoes_barras[11]);
-
-    glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0));
-    glScalef(tamanho_barra.x, tamanho_barra.y, tamanho_barra.z);
-
-    glutSolidCube(1.0);
-
-    glPopMatrix();
-}
-
-void draw_barT1()
-{
-    glPushMatrix();
-    glTranslatef(posicoes_barrasT[0] + (tamanho_barra.x / 2), posicoes_barrasT[1], proximidade_da_camera + posicoes_barrasT[2]);
-
-    glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0) + (tamanho_barra.z / 2));
-    glScalef(tamanho_barraT.x, tamanho_barraT.y, tamanho_barraT.z);
-
-    glutSolidCube(1.0);
-
-    glPopMatrix();
-}
-
-void draw_barT2()
-{
-    glPushMatrix();
-    glTranslatef(posicoes_barrasT[3] - (tamanho_barra.x / 2), posicoes_barrasT[4], proximidade_da_camera + posicoes_barrasT[5]);
-
+    if (indice < 3) glTranslatef(posicoes_barrasT[indice] + (tamanho_barra.x / 2), posicoes_barrasT[indice + 1], proximidade_da_camera + posicoes_barrasT[indice + 2]);
+    else            glTranslatef(posicoes_barrasT[indice] - (tamanho_barra.x / 2), posicoes_barrasT[indice + 1], proximidade_da_camera + posicoes_barrasT[indice + 2]);
+    
     glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0) + (tamanho_barra.z / 2));
     glScalef(tamanho_barraT.x, tamanho_barraT.y, tamanho_barraT.z);
 
@@ -158,13 +107,8 @@ void draw_barT2()
 
 void draw_bars()
 {
-    draw_bar_1();
-    draw_bar_2();
-    draw_bar_3();
-    draw_bar_4();
-
-    draw_barT1();
-    draw_barT2();
+    for (int i = 0; i < 11; i += 3)   draw_bar(i);
+    for (int i = 0; i < 6; i += 3)    draw_barT(i);
 }
 
 void draw_grid()
@@ -186,8 +130,6 @@ void draw_ball()
 {
     glPushMatrix();
     glTranslatef(positionBallX, positionBallY, proximidade_da_camera + raioBola + (tamanho_campo.z / 2));
-
-    //cout << positionBallX * f << " " << positionBallY * f << endl;
 
     glPushMatrix();
 
@@ -212,24 +154,19 @@ void draw_text()
     }
 }
 
-void displayFcn(void) {
+void displayFcn(void)
+{
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
-    if (cam == 1)
+    if (cameraMode == '1')
     {
         gluLookAt(camX, camY, camZ,
             targetXcam, targetYcam, targetZcam,
             //0, 0, 0.5,
             0, 1, 0);
     }
-    else if (cam == 2)
-    {
-        gluLookAt(0, 0, 5,
-            0, 0, 0.5,
-            0, 1, 0);
-    }
-    else if (cam == 3)
+    else if (cameraMode == '2')
     {
         gluLookAt(targetXcam + .0, targetYcam - 3.0, targetZcam + 3.5,
             targetXcam, targetYcam + 7.0, targetZcam,
@@ -241,11 +178,10 @@ void displayFcn(void) {
         glVertex3f(1, 0, 0);
     glEnd();*/
 
-    //cout << camX << " " << camY << " " << camZ << endl;
-
     glColor3f(.0, 1.0, .0);
     draw_field();
     glColor3f(1.0, 1.0, 1.0);
+
     draw_bars();
     draw_ball();
     draw_grid();
@@ -254,137 +190,59 @@ void displayFcn(void) {
 
     glutSwapBuffers();
 }
-
-void keyboard_handler(unsigned char key, int x, int y)
+void reset_ball()
 {
-    if (key == 'a' || key == 'A')
-    {
-        //rotateY += -qntRotate;
-        //cout << "LEFT" << endl;
-        camX -= qntRotate;
-    }
-    if (key == 'd' || key == 'D')
-    {
-        //rotateY += qntRotate;
-        //cout << "RIGHT" << endl;
-        camX += qntRotate;
-    }
-    if (key == 'w' || key == 'W')
-    {
-        //rotateX += -qntRotate;
-        //cout << "UP" << endl;
-        camY -= qntRotate;
-    }
-    if (key == 's' || key == 'S')
-    {
-        //rotateX += qntRotate;
-        //cout << "DOWN" << endl;
-        camY += qntRotate;
-    }
-    if (key == 'q' || key == 'Q')
-    {
-        //rotateZ += qntRotate;
-        camZ -= qntRotate;
-    }
-    if (key == 'e' || key == 'E')
-    {
-        //rotateZ += -qntRotate;
-        camZ += qntRotate;
-    }
+    positionBallX = positionInitialBallX;
+    positionBallY = positionInitialBallY;
+}
 
-    if (key == 'j' || key == 'J')
-    {
-        positionBallX -= velocidadeBola;
-    }
-    if (key == 'k' || key == 'K')
-    {
-        positionBallY -= velocidadeBola;
-    }
-    if (key == 'l' || key == 'L')
-    {
-        positionBallX += velocidadeBola;
-    }
-    if (key == 'i' || key == 'I')
-    {
-        positionBallY += velocidadeBola;
-    }
+void verify_goal()
+{
+    bool rangeYTrave = (positionBallY <= posicoes_barras[1]) && (positionBallY >= posicoes_barras[4]);
 
     if (positionBallY >= 0.45 || positionBallY <= -0.45) // limites superior e inferior
     {
-        // jogar para o meio
-        positionBallX = positionInitialBallX;
-        positionBallY = positionInitialBallY;
+        reset_ball();  
     }
     else if (positionBallX <= posicoes_barras[0])
     {
-        if (positionBallY <= posicoes_barras[1] && positionBallY >= posicoes_barras[4])
-        {
-            //(ponto pro B)
-            pontuacaoB++;
-            cout << "Pontuacao A: " << pontuacaoA << " Pontuacao B: " << pontuacaoB << endl;
-        }
-        // jogar para o meio
-        positionBallX = positionInitialBallX;
-        positionBallY = positionInitialBallY;
+        if (rangeYTrave)    pontuacaoB++;
+        
+        reset_ball();
     }
     else if (positionBallX >= posicoes_barras[6])
     {
-        if (positionBallY <= posicoes_barras[1] && positionBallY >= posicoes_barras[4])
-        {
-            //(ponto pro A)
-            pontuacaoA++;
-            cout << "Pontuacao A: " << pontuacaoA << " Pontuacao B: " << pontuacaoB << endl;
-        }
-        // jogar para o meio
-        positionBallX = positionInitialBallX;
-        positionBallY = positionInitialBallY;
+        if (rangeYTrave)    pontuacaoA++;
+        
+        reset_ball();
     }
-
-    if (key == '1')
-    {
-        cam = 1;
-
-        // zerar a camera
-        camX = camInitialX;
-        camY = camInitialY;
-        camZ = camInitialZ;
-
-        targetXcam = targetInitialXcam;
-        targetYcam = targetInitialYcam;
-        targetZcam = targetInitialZcam;
-    }
-    if (key == '2')
-    {
-        cam = 2;
-
-        // zerar a camera
-        camX = camInitialX;
-        camY = camInitialY;
-        camZ = camInitialZ;
-
-        targetXcam = targetInitialXcam;
-        targetYcam = targetInitialYcam;
-        targetZcam = targetInitialZcam;
-    }
-    if (key == '3')
-    {
-        cam = 3;
-
-        // zerar a camera
-        camX = camInitialX;
-        camY = camInitialY;
-        camZ = camInitialZ;
-
-        targetXcam = targetInitialXcam;
-        targetYcam = targetInitialYcam;
-        targetZcam = targetInitialZcam;
-    }
-
-    glutPostRedisplay();
-    //cam = 0;
 }
 
-void camera_move(int key, int x, int y)
+void move_ball(unsigned char key)
+{
+    bool move = false;
+    if (key == 'j' || key == 'J')   positionBallX -= velocidadeBola;    move = true;
+    if (key == 'l' || key == 'L')   positionBallX += velocidadeBola;    move = true;
+
+    if (key == 'k' || key == 'K')   positionBallY -= velocidadeBola;    move = true;
+    if (key == 'i' || key == 'I')   positionBallY += velocidadeBola;    move = true;
+
+    if (move)   verify_goal();
+}
+
+void rotate_camera(unsigned char key)
+{
+    if (key == 'a' || key == 'A')   camX -= qntRotate;
+    if (key == 'd' || key == 'D')   camX += qntRotate;
+    
+    if (key == 'w' || key == 'W')   camY -= qntRotate;
+    if (key == 's' || key == 'S')   camY += qntRotate;
+
+    if (key == 'q' || key == 'Q')   camZ -= qntRotate;
+    if (key == 'e' || key == 'E')   camZ += qntRotate;
+}
+
+void move_camera(int key)
 {
     if (key == GLUT_KEY_UP)
     {
@@ -408,13 +266,50 @@ void camera_move(int key, int x, int y)
     }
 }
 
+void reset_camera()
+{
+    camX = camInitialX;
+    camY = camInitialY;
+    camZ = camInitialZ;
+
+    targetXcam = targetInitialXcam;
+    targetYcam = targetInitialYcam;
+    targetZcam = targetInitialZcam;
+}
+
+void camera_mode(unsigned char key)
+{
+    if (key == '1' || key == '2')
+    {
+        cameraMode = key;
+        reset_camera();
+    }
+}
+
+void keyboard_handler(unsigned char key, int x, int y)
+{
+    rotate_camera(key);
+
+    camera_mode(key);
+
+    move_ball(key);
+
+    glutPostRedisplay();
+}
+
+void specialKeys_handler(int key, int x, int y)
+{
+    move_camera(key);
+}
+
 void timer(int)
 {
     glutPostRedisplay();
     glutTimerFunc(1000 / 60, timer, 0);
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(1200, 900);
@@ -425,7 +320,7 @@ int main(int argc, char** argv) {
     glutDisplayFunc(displayFcn);
     glutTimerFunc(0, timer, 0);
     glutKeyboardFunc(keyboard_handler);
-    glutSpecialFunc(camera_move);
+    glutSpecialFunc(specialKeys_handler);
     glutMainLoop();
 
     return 0;
