@@ -1,10 +1,12 @@
-#include <iostream>
+﻿#include <iostream>
 #include <GL/glut.h>
 #include <string>
+#include "Camera.h"
 
 using namespace std;
 
-float qntRotate = 0.1;
+Camera* camera = new Camera();
+
 
 struct tamanho {
     float x;
@@ -28,25 +30,8 @@ float posicoes_barras[] = { -0.6, 0.0366, 0,
 float posicoes_barrasT[] = { -0.6, 0, 0,
                            0.6, 0, 0 };
 
-char cameraMode = '1';
-
-float camInitialX = 0;
-float camInitialY = 0;
-float camInitialZ = 5;
-
-float camX = camInitialX;
-float camY = camInitialY;
-float camZ = camInitialZ;
 int slices = 30;
 int stacks = 30;
-
-float targetInitialXcam = 0;
-float targetInitialYcam = 0;
-float targetInitialZcam = 0.5;
-
-float targetXcam = targetInitialXcam;
-float targetYcam = targetInitialYcam;
-float targetZcam = targetInitialZcam;
 
 float velocidadeBola = 0.01;
 float velocidadeRotacaoBola = 1000.0;
@@ -80,7 +65,7 @@ void draw_bar(int indice)
 {
     glPushMatrix();
 
-    if (indice < 6) glTranslatef(posicoes_barras[indice] + (tamanho_barra.x / 2), posicoes_barras[indice+1], proximidade_da_camera + posicoes_barras[indice+2]);
+    if (indice < 6) glTranslatef(posicoes_barras[indice] + (tamanho_barra.x / 2), posicoes_barras[indice + 1], proximidade_da_camera + posicoes_barras[indice + 2]);
     else            glTranslatef(posicoes_barras[indice] - (tamanho_barra.x / 2), posicoes_barras[indice + 1], proximidade_da_camera + posicoes_barras[indice + 2]);
 
     glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0));
@@ -96,7 +81,7 @@ void draw_barT(int indice)
 
     if (indice < 3) glTranslatef(posicoes_barrasT[indice] + (tamanho_barra.x / 2), posicoes_barrasT[indice + 1], proximidade_da_camera + posicoes_barrasT[indice + 2]);
     else            glTranslatef(posicoes_barrasT[indice] - (tamanho_barra.x / 2), posicoes_barrasT[indice + 1], proximidade_da_camera + posicoes_barrasT[indice + 2]);
-    
+
     glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0) + (tamanho_barra.z / 2));
     glScalef(tamanho_barraT.x, tamanho_barraT.y, tamanho_barraT.z);
 
@@ -159,18 +144,17 @@ void displayFcn(void)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
-    if (cameraMode == '1')
+    if (camera->mode == '1')
     {
-        gluLookAt(camX, camY, camZ,
-            targetXcam, targetYcam, targetZcam,
-            //0, 0, 0.5,
-            0, 1, 0);
+        gluLookAt(camera->position_atual.x, camera->position_atual.y, camera->position_atual.z,
+                  camera->targetAtual.x, camera->targetAtual.y, camera->targetAtual.z,
+                  0, 1, 0);
     }
-    else if (cameraMode == '2')
+    else if (camera->mode == '2')
     {
-        gluLookAt(targetXcam + .0, targetYcam - 3.0, targetZcam + 3.5,
-            targetXcam, targetYcam + 7.0, targetZcam,
-            0, 1, 0);
+        gluLookAt(camera->targetAtual.x + .0, camera->targetAtual.y - 3.0, camera->targetAtual.z + 3.5,
+                  camera->targetAtual.x, camera->targetAtual.y + 7.0, camera->targetAtual.z,
+                  0, 1, 0);
     }
 
     /*glBegin(GL_LINES);
@@ -190,6 +174,7 @@ void displayFcn(void)
 
     glutSwapBuffers();
 }
+
 void reset_ball()
 {
     positionBallX = positionInitialBallX;
@@ -202,18 +187,18 @@ void verify_goal()
 
     if (positionBallY >= 0.45 || positionBallY <= -0.45) // limites superior e inferior
     {
-        reset_ball();  
+        reset_ball();
     }
     else if (positionBallX <= posicoes_barras[0])
     {
         if (rangeYTrave)    pontuacaoB++;
-        
+
         reset_ball();
     }
     else if (positionBallX >= posicoes_barras[6])
     {
         if (rangeYTrave)    pontuacaoA++;
-        
+
         reset_ball();
     }
 }
@@ -230,67 +215,11 @@ void move_ball(unsigned char key)
     if (move)   verify_goal();
 }
 
-void rotate_camera(unsigned char key)
-{
-    if (key == 'a' || key == 'A')   camX -= qntRotate;
-    if (key == 'd' || key == 'D')   camX += qntRotate;
-    
-    if (key == 'w' || key == 'W')   camY -= qntRotate;
-    if (key == 's' || key == 'S')   camY += qntRotate;
-
-    if (key == 'q' || key == 'Q')   camZ -= qntRotate;
-    if (key == 'e' || key == 'E')   camZ += qntRotate;
-}
-
-void move_camera(int key)
-{
-    if (key == GLUT_KEY_UP)
-    {
-        camY -= qntRotate;
-        targetYcam -= qntRotate;
-    }
-    if (key == GLUT_KEY_DOWN)
-    {
-        camY += qntRotate;
-        targetYcam += qntRotate;
-    }
-    if (key == GLUT_KEY_LEFT)
-    {
-        camX += qntRotate;
-        targetXcam += qntRotate;
-    }
-    if (key == GLUT_KEY_RIGHT)
-    {
-        camX -= qntRotate;
-        targetXcam -= qntRotate;
-    }
-}
-
-void reset_camera()
-{
-    camX = camInitialX;
-    camY = camInitialY;
-    camZ = camInitialZ;
-
-    targetXcam = targetInitialXcam;
-    targetYcam = targetInitialYcam;
-    targetZcam = targetInitialZcam;
-}
-
-void camera_mode(unsigned char key)
-{
-    if (key == '1' || key == '2')
-    {
-        cameraMode = key;
-        reset_camera();
-    }
-}
-
 void keyboard_handler(unsigned char key, int x, int y)
 {
-    rotate_camera(key);
+    camera->rotate(key);
 
-    camera_mode(key);
+    camera->modify_mode(key);
 
     move_ball(key);
 
@@ -299,7 +228,7 @@ void keyboard_handler(unsigned char key, int x, int y)
 
 void specialKeys_handler(int key, int x, int y)
 {
-    move_camera(key);
+    camera->move(key);
 }
 
 void timer(int)
