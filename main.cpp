@@ -2,47 +2,32 @@
 #include <GL/glut.h>
 #include <string>
 #include "Camera.h"
+#include "Bola.h"
 
 using namespace std;
 
 Camera* camera = new Camera();
-
+Bola* bola = new Bola();
 
 struct tamanho {
-    float x;
-    float y;
-    float z;
+    GLfloat x;
+    GLfloat y;
+    GLfloat z;
 };
 
-float proximidade_da_camera = 2.5;
+GLfloat proximidade_da_camera = 2.5f;
 
-tamanho tamanho_barra = { 0.01, 0.01, 0.05 };
-tamanho tamanho_campo = { 1.2, 0.9, 0.1 }; // 2.4, 1.8, 0.1 fica melhor
-tamanho tamanho_barraT = { tamanho_barra.x , 0.0732, tamanho_barra.x };
+tamanho tamanho_barra = { 0.01f, 0.01f, 0.05f };
+tamanho tamanho_campo = { 1.2f, 0.9f, 0.1f }; // 2.4, 1.8, 0.1 fica melhor
+tamanho tamanho_barraT = { tamanho_barra.x , 0.0732f, tamanho_barra.x };
 
-float raioBola = 0.01;
+GLfloat posicoes_barras[] = { -0.6f, 0.0366f, 0.0f,
+                           -0.6f, -0.0366f, 0.0f,
+                           0.6f, 0.0366f, 0.0f,
+                           0.6f, -0.0366f, 0.0f };
 
-float posicoes_barras[] = { -0.6, 0.0366, 0,
-                           -0.6, -0.0366, 0,
-                           0.6, 0.0366, 0,
-                           0.6, -0.0366, 0 };
-
-float posicoes_barrasT[] = { -0.6, 0, 0,
-                           0.6, 0, 0 };
-
-int slices = 30;
-int stacks = 30;
-
-float velocidadeBola = 0.01;
-float velocidadeRotacaoBola = 1000.0;
-
-float positionInitialBallX = 0;
-float positionInitialBallY = 0;
-float positionInitialBallZ = 0.5;
-
-float positionBallX = positionInitialBallX;
-float positionBallY = positionInitialBallY;
-float positionBallZ = positionInitialBallZ;
+GLfloat posicoes_barrasT[] = { -0.6f, 0.0f, 0.0f,
+                           0.6f, 0.0f, 0.0f };
 
 int pontuacaoA = 0;
 int pontuacaoB = 0;
@@ -51,7 +36,7 @@ string placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
 
 void init(void) {
     /* selecionar cor de fundo (preto) */
-    glClearColor(69.0 / 255.0, 39.0 / 255.0, .0 / 255.0, 1.0); // set background color to black
+    glClearColor(69.0f / 255.0f, 39.0f / 255.0f, .0f / 255.0f, 1.0f); // set background color to black
     //glClearColor(.0, .0, .0, 1.0);
     glEnable(GL_DEPTH_TEST);
 
@@ -68,7 +53,7 @@ void draw_bar(int indice)
     if (indice < 6) glTranslatef(posicoes_barras[indice] + (tamanho_barra.x / 2), posicoes_barras[indice + 1], proximidade_da_camera + posicoes_barras[indice + 2]);
     else            glTranslatef(posicoes_barras[indice] - (tamanho_barra.x / 2), posicoes_barras[indice + 1], proximidade_da_camera + posicoes_barras[indice + 2]);
 
-    glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0));
+    glTranslatef(.0f, .0f, (tamanho_barra.z / 2.0f) + (tamanho_campo.z / 2.0f));
     glScalef(tamanho_barra.x, tamanho_barra.y, tamanho_barra.z);
     glutSolidCube(1.0);
 
@@ -82,7 +67,7 @@ void draw_barT(int indice)
     if (indice < 3) glTranslatef(posicoes_barrasT[indice] + (tamanho_barra.x / 2), posicoes_barrasT[indice + 1], proximidade_da_camera + posicoes_barrasT[indice + 2]);
     else            glTranslatef(posicoes_barrasT[indice] - (tamanho_barra.x / 2), posicoes_barrasT[indice + 1], proximidade_da_camera + posicoes_barrasT[indice + 2]);
 
-    glTranslatef(.0, .0, (tamanho_barra.z / 2.0) + (tamanho_campo.z / 2.0) + (tamanho_barra.z / 2));
+    glTranslatef(.0f, .0f, (tamanho_barra.z / 2.0f) + (tamanho_campo.z / 2.0f) + (tamanho_barra.z / 2.0f));
     glScalef(tamanho_barraT.x, tamanho_barraT.y, tamanho_barraT.z);
 
     glutSolidCube(1.0);
@@ -114,14 +99,13 @@ void draw_field()
 void draw_ball()
 {
     glPushMatrix();
-    glTranslatef(positionBallX, positionBallY, proximidade_da_camera + raioBola + (tamanho_campo.z / 2));
+    glTranslatef(bola->position_atual.x, bola->position_atual.y, proximidade_da_camera + bola->raio + (tamanho_campo.z / 2));
 
     glPushMatrix();
 
-    glRotatef(positionBallX * velocidadeRotacaoBola, 0, 1, 0);
-    glRotatef(positionBallY * velocidadeRotacaoBola, 1, 0, 0);
-    glutWireSphere(raioBola, slices, stacks);
-    // testar rotacao: raioBola * 100.0
+    glRotatef(bola->position_atual.x * bola->velocidadeRotacao, 0, 1, 0);
+    glRotatef(bola->position_atual.y * bola->velocidadeRotacao, 1, 0, 0);
+    glutWireSphere(bola->raio, bola->slices, bola->stacks);
 
     glPopMatrix();
 
@@ -131,7 +115,7 @@ void draw_ball()
 void draw_text()
 {
     placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
-    glRasterPos3f(-0.08, 1, 0.5);
+    glRasterPos3f(-0.08f, 1.0f, 0.5f);
 
     for (char p : placar)
     {
@@ -175,53 +159,16 @@ void displayFcn(void)
     glutSwapBuffers();
 }
 
-void reset_ball()
-{
-    positionBallX = positionInitialBallX;
-    positionBallY = positionInitialBallY;
-}
-
-void verify_goal()
-{
-    bool rangeYTrave = (positionBallY <= posicoes_barras[1]) && (positionBallY >= posicoes_barras[4]);
-
-    if (positionBallY >= 0.45 || positionBallY <= -0.45) // limites superior e inferior
-    {
-        reset_ball();
-    }
-    else if (positionBallX <= posicoes_barras[0])
-    {
-        if (rangeYTrave)    pontuacaoB++;
-
-        reset_ball();
-    }
-    else if (positionBallX >= posicoes_barras[6])
-    {
-        if (rangeYTrave)    pontuacaoA++;
-
-        reset_ball();
-    }
-}
-
-void move_ball(unsigned char key)
-{
-    bool move = false;
-    if (key == 'j' || key == 'J')   positionBallX -= velocidadeBola;    move = true;
-    if (key == 'l' || key == 'L')   positionBallX += velocidadeBola;    move = true;
-
-    if (key == 'k' || key == 'K')   positionBallY -= velocidadeBola;    move = true;
-    if (key == 'i' || key == 'I')   positionBallY += velocidadeBola;    move = true;
-
-    if (move)   verify_goal();
-}
-
 void keyboard_handler(unsigned char key, int x, int y)
 {
     camera->rotate(key);
 
     camera->modify_mode(key);
 
-    move_ball(key);
+    if (bola->move(key))
+    {
+        bola->verify_goal(posicoes_barras, &pontuacaoA, &pontuacaoB);
+    }
 
     glutPostRedisplay();
 }

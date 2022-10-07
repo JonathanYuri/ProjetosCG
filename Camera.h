@@ -1,18 +1,12 @@
 #pragma once
-
-struct position
-{
-	float x;
-	float y;
-	float z;
-};
+#include "Tipos.h"
 
 class Camera
 {
 public:
 	char mode = '1';
 
-	float qntRotate = 0.1f;
+	GLfloat qntRotate = 0.1f;
 
 	position position_inicial = { 0.0f, 0.0f, 5.0f };
 	position position_atual = position_inicial;
@@ -28,4 +22,3 @@ public:
 
 	void rotate(unsigned char key);
 };
-

@@ -1,5 +1,4 @@
 #include "Camera.h"
-#include <GL/glut.h>
 
 void Camera::reset()
 {
