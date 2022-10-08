@@ -19,7 +19,7 @@ GLfloat proximidade_da_camera = 2.5f;
 tamanho tamanho_barra = { 0.01f, 0.01f, 0.05f };
 
 tamanho tamanho_campo = { 2.4f, 1.8f, 0.1f };
-// tamanho tamanho_campo = { 2.4f, 1.8f, 0.1f };
+// tamanho tamanho_campo = { 1.2f, 0.9f, 0.1f };
 
 GLfloat posicoes_barras[] = { -(tamanho_campo.x / 2), 0.0366f * (tamanho_campo.y / 0.9f), 0.0f,
                            -(tamanho_campo.x / 2), -0.0366f * (tamanho_campo.y / 0.9f), 0.0f,
