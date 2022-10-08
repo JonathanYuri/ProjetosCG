@@ -1,5 +1,4 @@
 ﻿#include <iostream>
-#include <GL/glut.h>
 #include <string>
 #include "Camera.h"
 #include "Bola.h"
@@ -18,16 +17,19 @@ struct tamanho {
 GLfloat proximidade_da_camera = 2.5f;
 
 tamanho tamanho_barra = { 0.01f, 0.01f, 0.05f };
-tamanho tamanho_campo = { 1.2f, 0.9f, 0.1f }; // 2.4, 1.8, 0.1 fica melhor
-tamanho tamanho_barraT = { tamanho_barra.x , 0.0732f, tamanho_barra.x };
 
-GLfloat posicoes_barras[] = { -0.6f, 0.0366f, 0.0f,
-                           -0.6f, -0.0366f, 0.0f,
-                           0.6f, 0.0366f, 0.0f,
-                           0.6f, -0.0366f, 0.0f };
+tamanho tamanho_campo = { 2.4f, 1.8f, 0.1f };
+// tamanho tamanho_campo = { 2.4f, 1.8f, 0.1f };
 
-GLfloat posicoes_barrasT[] = { -0.6f, 0.0f, 0.0f,
-                           0.6f, 0.0f, 0.0f };
+GLfloat posicoes_barras[] = { -(tamanho_campo.x / 2), 0.0366f * (tamanho_campo.y / 0.9f), 0.0f,
+                           -(tamanho_campo.x / 2), -0.0366f * (tamanho_campo.y / 0.9f), 0.0f,
+                           (tamanho_campo.x / 2), 0.0366f * (tamanho_campo.y / 0.9f), 0.0f,
+                           (tamanho_campo.x / 2), -0.0366f * (tamanho_campo.y / 0.9f), 0.0f };
+
+tamanho tamanho_barraT = { tamanho_barra.x , 0.0732f * (tamanho_campo.y / 0.9f), tamanho_barra.x };
+
+GLfloat posicoes_barrasT[] = { -(tamanho_campo.x / 2), 0.0f, 0.0f,
+                           (tamanho_campo.x / 2), 0.0f, 0.0f };
 
 int pontuacaoA = 0;
 int pontuacaoB = 0;
@@ -159,6 +161,28 @@ void displayFcn(void)
     glutSwapBuffers();
 }
 
+void verify_goal()
+{
+    bool rangeYTrave = (bola->position_atual.y <= posicoes_barras[1]) && (bola->position_atual.y >= posicoes_barras[4]);
+
+    if (bola->position_atual.y >= 0.45 || bola->position_atual.y <= -0.45) // limites superior e inferior
+    {
+        bola->reset_position();
+    }
+    else if (bola->position_atual.x <= posicoes_barras[0])
+    {
+        if (rangeYTrave)    pontuacaoB++;
+
+        bola->reset_position();
+    }
+    else if (bola->position_atual.x >= posicoes_barras[6])
+    {
+        if (rangeYTrave)    pontuacaoA++;
+
+        bola->reset_position();
+    }
+}
+
 void keyboard_handler(unsigned char key, int x, int y)
 {
     camera->rotate(key);
@@ -167,7 +191,7 @@ void keyboard_handler(unsigned char key, int x, int y)
 
     if (bola->move(key))
     {
-        bola->verify_goal(posicoes_barras, &pontuacaoA, &pontuacaoB);
+        verify_goal();
     }
 
     glutPostRedisplay();

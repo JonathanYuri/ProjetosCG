@@ -19,7 +19,6 @@ public:
 
     void reset_position();
 
-    void verify_goal(GLfloat posicoes_barras[], int* pontuacaoA, int* pontuacaoB);
-
     bool move(unsigned char key);
 };
+
