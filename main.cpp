@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <string>
 #include "Camera.h"
 #include "Bola.h"
@@ -19,7 +19,10 @@ GLfloat proximidade_da_camera = 2.5f;
 tamanho tamanho_barra = { 0.01f, 0.01f, 0.05f };
 
 tamanho tamanho_campo = { 2.4f, 1.8f, 0.1f };
-// tamanho tamanho_campo = { 1.2f, 0.9f, 0.1f };
+//tamanho tamanho_campo = { 1.2f, 0.9f, 0.1f };
+int grid_division = 11;
+GLfloat color_grid[] = {.0f, 0.5f, .0f, 
+                        .0f, 1.0f, .0f};
 
 GLfloat posicoes_barras[] = { -(tamanho_campo.x / 2), 0.0366f * (tamanho_campo.y / 0.9f), 0.0f,
                            -(tamanho_campo.x / 2), -0.0366f * (tamanho_campo.y / 0.9f), 0.0f,
@@ -85,16 +88,98 @@ void draw_bars()
 
 void draw_grid()
 {
+    float division_length = tamanho_campo.x / grid_division;
+
+    glPushMatrix();
+    glTranslatef(.0, .0, proximidade_da_camera);
+    
+    for (int i = 0; i < grid_division; i++)
+    {
+        glColor3f(color_grid[(i % 2) * 3], color_grid[((i % 2) * 3) + 1], color_grid[((i % 2) * 3) + 2]);
+
+        glBegin(GL_POLYGON);
+        glVertex3f((division_length * i) - tamanho_campo.x/2, tamanho_campo.y/2, tamanho_campo.z/2);
+        glVertex3f((division_length * (i + 1)) - tamanho_campo.x/2, tamanho_campo.y/2, tamanho_campo.z/2);
+       
+        glVertex3f((division_length * (i + 1)) - tamanho_campo.x/2, -tamanho_campo.y/2, tamanho_campo.z/2);
+        glVertex3f((division_length * i) - tamanho_campo.x/2, -tamanho_campo.y/2, tamanho_campo.z/2);
+        glEnd();
+    }
+    glPopMatrix();
+}
+
+void draw_lines()
+{
 
 }
 
 void draw_field()
 {
-    glPushMatrix();
+    /*glPushMatrix();
+    glColor3f(.0, 1.0, .0);
     glTranslatef(.0, .0, proximidade_da_camera);
 
     glScalef(tamanho_campo.x, tamanho_campo.y, tamanho_campo.z);
-    glutWireCube(1.0);
+    glutSolidCube(1.0);
+    glPopMatrix();*/
+
+    float division_length = tamanho_campo.x / grid_division;
+
+    glPushMatrix();
+    glTranslatef(.0, .0, proximidade_da_camera);
+
+    for (int i = 0; i < grid_division; i++)
+    {
+        glColor3f(color_grid[(i % 2) * 3], color_grid[((i % 2) * 3) + 1], color_grid[((i % 2) * 3) + 2]);
+
+        //frente
+        glBegin(GL_POLYGON);
+        glVertex3f((division_length * i) - tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
+        glVertex3f((division_length * (i + 1)) - tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
+
+        glVertex3f((division_length * (i + 1)) - tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
+        glVertex3f((division_length * i) - tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
+        glEnd();
+    }
+
+    //trás
+    glBegin(GL_POLYGON);
+    glVertex3f(-tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2); 
+    glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2);
+
+    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2); 
+    glVertex3f(-tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2); 
+    glEnd();
+
+    //esquerda
+    glBegin(GL_POLYGON);
+    glVertex3f(-tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
+    glVertex3f(-tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
+
+    glVertex3f(-tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
+    glVertex3f(-tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2);
+    glEnd();
+
+    //direita
+    glBegin(GL_POLYGON);
+    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
+    glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
+
+    glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2);
+    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
+    glEnd();
+
+    //cima (falta criar)
+    glBegin(GL_POLYGON);
+    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
+    glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
+
+    glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2);
+    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
+    glEnd();
+
+    //baixo
+
     glPopMatrix();
 }
 
@@ -114,9 +199,10 @@ void draw_ball()
     glPopMatrix();
 }
 
-void draw_text()
+void draw_scoreBoard()
 {
     placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
+    glColor3f(1.0, 1.0, 1.0);
     glRasterPos3f(-0.08f, 1.0f, 0.5f);
 
     for (char p : placar)
@@ -133,14 +219,14 @@ void displayFcn(void)
     if (camera->mode == '1')
     {
         gluLookAt(camera->position_atual.x, camera->position_atual.y, camera->position_atual.z,
-                  camera->targetAtual.x, camera->targetAtual.y, camera->targetAtual.z,
-                  0, 1, 0);
+            camera->targetAtual.x, camera->targetAtual.y, camera->targetAtual.z,
+            0, 1, 0);
     }
     else if (camera->mode == '2')
     {
         gluLookAt(camera->targetAtual.x + .0, camera->targetAtual.y - 3.0, camera->targetAtual.z + 3.5,
-                  camera->targetAtual.x, camera->targetAtual.y + 7.0, camera->targetAtual.z,
-                  0, 1, 0);
+            camera->targetAtual.x, camera->targetAtual.y + 7.0, camera->targetAtual.z,
+            0, 1, 0);
     }
 
     /*glBegin(GL_LINES);
@@ -148,7 +234,6 @@ void displayFcn(void)
         glVertex3f(1, 0, 0);
     glEnd();*/
 
-    glColor3f(.0, 1.0, .0);
     draw_field();
     glColor3f(1.0, 1.0, 1.0);
 
@@ -156,7 +241,7 @@ void displayFcn(void)
     draw_ball();
     draw_grid();
 
-    draw_text();
+    draw_scoreBoard();
 
     glutSwapBuffers();
 }
@@ -165,7 +250,7 @@ void verify_goal()
 {
     bool rangeYTrave = (bola->position_atual.y <= posicoes_barras[1]) && (bola->position_atual.y >= posicoes_barras[4]);
 
-    if (bola->position_atual.y >= 0.45 || bola->position_atual.y <= -0.45) // limites superior e inferior
+    if (bola->position_atual.y >= (tamanho_campo.y/2) || bola->position_atual.y <= -(tamanho_campo.y / 2)) // limites superior e inferior
     {
         bola->reset_position();
     }
