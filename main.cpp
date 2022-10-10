@@ -1,4 +1,6 @@
-#include <iostream>
+﻿#include <iostream>
+#include <cfloat>
+#include <vector>
 #include <string>
 #include "Camera.h"
 #include "Bola.h"
@@ -15,14 +17,17 @@ struct tamanho {
 };
 
 GLfloat proximidade_da_camera = 2.5f;
+float pixel_size = 0.01f;
 
 tamanho tamanho_barra = { 0.01f, 0.01f, 0.05f };
 
 tamanho tamanho_campo = { 2.4f, 1.8f, 0.1f };
 //tamanho tamanho_campo = { 1.2f, 0.9f, 0.1f };
 int grid_division = 11;
-GLfloat color_grid[] = {.0f, 0.5f, .0f, 
-                        .0f, 1.0f, .0f};
+int qnt_pixel_por_zero_ponto_1 = 1;
+
+GLfloat color_grid[] = { .0f, 0.5f, .0f,
+                        .0f, 1.0f, .0f };
 
 GLfloat posicoes_barras[] = { -(tamanho_campo.x / 2), 0.0366f * (tamanho_campo.y / 0.9f), 0.0f,
                            -(tamanho_campo.x / 2), -0.0366f * (tamanho_campo.y / 0.9f), 0.0f,
@@ -86,21 +91,316 @@ void draw_bars()
     for (int i = 0; i < 6; i += 3)    draw_barT(i);
 }
 
+int ajustar(float x)
+{
+    return x * 10;
+}
+
+vector<pair<int, int>> Bresenham(int xI, int yI, int xF, int yF)
+{
+    vector<pair<int, int>> points;
+
+    int dx = xF - xI;
+    int dy = yF - yI;
+
+    int dAtual = 2 * dy - dx;
+    int dE = 2 * dy;
+    int dNE = 2 * (dy - dx);
+    
+    int xA = xI;
+    int yA = yI;
+
+    points.push_back({xI, yI});
+    while ((xA != xF) || (yA != yF))
+    {
+        if (dAtual < 0)     dAtual += dE;
+        else
+        {
+            dAtual += dNE;
+            yA += 1;
+        }
+        xA += 1;
+        points.push_back({xA, yA});
+    }
+    return points;
+}
+
+vector<pair<int, int>> TraceLine(int xI, int yI, int xF, int yF)
+{
+    int nX = xF - xI;
+    int nY = yF - yI;
+    
+    vector<pair<int, int>> points;
+    if (abs(nX) > abs(nY))
+    {
+        points = Bresenham(0, 0, abs(nX), abs(nY));
+    }
+    else
+    {
+        //cout << "trocar" << endl;
+        points = Bresenham(0, 0, abs(nY), abs(nX));
+    }
+    
+    //cout << endl;
+    for (auto p : points)
+    {
+        //cout << "xP: " << p.first << " yP: " << p.second << endl;
+    }
+
+    for (int i = 0; i < points.size(); i++)
+    {
+        if (abs(nY) > abs(nX))
+        {
+            int aux = points[i].first;
+            points[i].first = points[i].second;
+            points[i].second = aux;
+        }
+
+        if (nX < 0)
+        {
+            points[i].first = -points[i].first;
+        }
+        points[i].first += xI;
+        if (nY < 0)
+        {
+            points[i].second = -points[i].second;
+        }
+        points[i].second += yI;
+    }
+
+    //cout << endl;
+    for (auto p : points)
+    {
+        //cout << "xP: " << p.first << " yP: " << p.second << endl;
+    }
+
+    return points;
+}
+
 void draw_lines()
 {
+    float divisor = 10.0f;
+    divisor *= qnt_pixel_por_zero_ponto_1;
 
+    vector<vector<pair<int, int>>> points;
+
+    int xI = 0, yI = 0, xF = 0, yF = 0;
+
+    // linha do meio
+    xI = 0;
+    yI = ajustar(tamanho_campo.y / 2.0f);
+    xF = 0;
+    yF = ajustar(-tamanho_campo.y / 2.0f);
+
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+                               yI * qnt_pixel_por_zero_ponto_1,
+                               xF * qnt_pixel_por_zero_ponto_1,
+                               yF * qnt_pixel_por_zero_ponto_1));
+
+    // linha esquerda
+    xI = ajustar(-tamanho_campo.x / 2);
+    yI = ajustar(tamanho_campo.y / 2);
+    xF = ajustar(-tamanho_campo.x / 2);
+    yF = ajustar(-tamanho_campo.y / 2);
+
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
+
+    // linha direita
+    xI = ajustar(tamanho_campo.x / 2);
+    yI = ajustar(tamanho_campo.y / 2);
+    xF = ajustar(tamanho_campo.x / 2);
+    yF = ajustar(-tamanho_campo.y / 2);
+
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
+
+    // linha de cima
+    xI = ajustar(-tamanho_campo.x / 2);
+    yI = ajustar(tamanho_campo.y / 2);
+    xF = ajustar(tamanho_campo.x / 2);
+    yF = ajustar(tamanho_campo.y / 2);
+
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
+
+    // linha de baixo
+    xI = ajustar(-tamanho_campo.x / 2);
+    yI = ajustar(-tamanho_campo.y / 2);
+    xF = ajustar(tamanho_campo.x / 2);
+    yF = ajustar(-tamanho_campo.y / 2);
+
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
+
+    // area direita
+    xI = ajustar(0.435f * (tamanho_campo.x / 1.2f));
+    yI = ajustar(0.2016f * (tamanho_campo.y / 0.9f));
+    xF = ajustar(0.435f * (tamanho_campo.x / 1.2f));
+    yF = ajustar(-0.2016f * (tamanho_campo.y / 0.9f));
+
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
+
+    xI = ajustar(0.435f * (tamanho_campo.x / 1.2f));
+    yI = ajustar(0.2016f * (tamanho_campo.y / 0.9f));
+    xF = ajustar(tamanho_campo.x / 2);
+    yF = ajustar(0.2016f * (tamanho_campo.y / 0.9f));
+
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
+
+    xI = ajustar(0.435f * (tamanho_campo.x / 1.2f));
+    yI = ajustar(-0.2016f * (tamanho_campo.y / 0.9f));
+    xF = ajustar(tamanho_campo.x / 2);
+    yF = ajustar(-0.2016f * (tamanho_campo.y / 0.9f));
+
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
+
+    xI = ajustar((tamanho_campo.x / 2) - 0.055f);
+    yI = ajustar(0.1384f);
+    xF = ajustar((tamanho_campo.x / 2) - 0.055f);
+    yF = ajustar(-0.1384f);
+
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
+
+    xI = ajustar((tamanho_campo.x / 2) - 0.055f);
+    yI = ajustar(0.1384f);
+    xF = ajustar(tamanho_campo.x / 2);
+    yF = ajustar(0.1384f);
+
+    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
+        yI* qnt_pixel_por_zero_ponto_1,
+        xF* qnt_pixel_por_zero_ponto_1,
+        yF* qnt_pixel_por_zero_ponto_1));
+
+    xI = ajustar((tamanho_campo.x / 2) - 0.055f);
+    yI = ajustar(-0.1384f);
+    xF = ajustar(tamanho_campo.x / 2);
+    yF = ajustar(-0.1384f);
+
+    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
+        yI* qnt_pixel_por_zero_ponto_1,
+        xF* qnt_pixel_por_zero_ponto_1,
+        yF* qnt_pixel_por_zero_ponto_1));
+
+    // area esquerda
+    xI = ajustar(-0.435f * (tamanho_campo.x / 1.2f));
+    yI = ajustar(0.2016f * (tamanho_campo.y / 0.9f));
+    xF = ajustar(-0.435f * (tamanho_campo.x / 1.2f));
+    yF = ajustar(-0.2016f * (tamanho_campo.y / 0.9f));
+
+    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
+        yI* qnt_pixel_por_zero_ponto_1,
+        xF* qnt_pixel_por_zero_ponto_1,
+        yF* qnt_pixel_por_zero_ponto_1));
+
+    xI = ajustar(-0.435f * (tamanho_campo.x / 1.2f));
+    yI = ajustar(0.2016f * (tamanho_campo.y / 0.9f));
+    xF = ajustar(-(tamanho_campo.x / 2));
+    yF = ajustar(0.2016f * (tamanho_campo.y / 0.9f));
+
+    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
+        yI* qnt_pixel_por_zero_ponto_1,
+        xF* qnt_pixel_por_zero_ponto_1,
+        yF* qnt_pixel_por_zero_ponto_1));
+
+    xI = ajustar(-0.435f * (tamanho_campo.x / 1.2f));
+    yI = ajustar(-0.2016f * (tamanho_campo.y / 0.9f));
+    xF = ajustar(-(tamanho_campo.x / 2));
+    yF = ajustar(-0.2016f * (tamanho_campo.y / 0.9f));
+
+    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
+        yI* qnt_pixel_por_zero_ponto_1,
+        xF* qnt_pixel_por_zero_ponto_1,
+        yF* qnt_pixel_por_zero_ponto_1));
+
+    xI = ajustar(-(tamanho_campo.x / 2) + 0.055f);
+    yI = ajustar(0.1384f);
+    xF = ajustar(-(tamanho_campo.x / 2) + 0.055f);
+    yF = ajustar(-0.1384f);
+
+    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
+        yI* qnt_pixel_por_zero_ponto_1,
+        xF* qnt_pixel_por_zero_ponto_1,
+        yF* qnt_pixel_por_zero_ponto_1));
+
+    xI = ajustar(-(tamanho_campo.x / 2) + 0.055f);
+    yI = ajustar(0.1384f);
+    xF = ajustar(-(tamanho_campo.x / 2));
+    yF = ajustar(0.1384f);
+
+    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
+        yI* qnt_pixel_por_zero_ponto_1,
+        xF* qnt_pixel_por_zero_ponto_1,
+        yF* qnt_pixel_por_zero_ponto_1));
+
+    xI = ajustar(-(tamanho_campo.x / 2) + 0.055f);
+    yI = ajustar(-0.1384f);
+    xF = ajustar(-(tamanho_campo.x / 2));
+    yF = ajustar(-0.1384f);
+
+    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
+        yI* qnt_pixel_por_zero_ponto_1,
+        xF* qnt_pixel_por_zero_ponto_1,
+        yF* qnt_pixel_por_zero_ponto_1));
+
+
+    glPushMatrix();
+    glColor3f(1.0, .0, .0);
+    glLineWidth(2.0f);
+    glTranslatef(.0, .0, proximidade_da_camera + (tamanho_campo.z / 2.0f));
+
+    glBegin(GL_POINTS);
+    for (auto point : points)
+    {
+        for (auto p : point)
+        {
+            //cout << "xP: " << p.first / 10.0f << " yP: " << p.second / 10.0f << endl;
+            glVertex3f(p.first / divisor, p.second / divisor, .0f);
+        }
+    }
+    glEnd();
+
+    glColor3f(.0, .0, 1.0f);
+    glBegin(GL_LINES);
+    for (auto point : points)
+    {
+        for (int i = 0; i < point.size(); i++)
+        {
+            if (i + 1 < point.size())
+            {
+                glVertex3f(point[i].first / divisor, point[i].second / divisor, .0f);
+                glVertex3f(point[i + 1].first / divisor, point[i + 1].second / divisor, .0f);
+            }
+        }
+    }
+    glEnd();
+
+    glPopMatrix();
+    //system("pause");
 }
 
 void draw_field()
 {
-    /*glPushMatrix();
-    glColor3f(.0, 1.0, .0);
-    glTranslatef(.0, .0, proximidade_da_camera);
-
-    glScalef(tamanho_campo.x, tamanho_campo.y, tamanho_campo.z);
-    glutSolidCube(1.0);
-    glPopMatrix();*/
-
     float division_length = tamanho_campo.x / grid_division;
 
     glPushMatrix();
@@ -122,11 +422,11 @@ void draw_field()
 
     //trás
     glBegin(GL_POLYGON);
-    glVertex3f(-tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2); 
+    glVertex3f(-tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2);
     glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2);
 
-    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2); 
-    glVertex3f(-tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2); 
+    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
+    glVertex3f(-tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
     glEnd();
 
     //esquerda
@@ -163,7 +463,7 @@ void draw_field()
 
     glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
     glVertex3f(-tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
-    
+
     glEnd();
 
     glPopMatrix();
@@ -227,6 +527,7 @@ void displayFcn(void)
     draw_ball();
 
     draw_scoreBoard();
+    draw_lines();
 
     glutSwapBuffers();
 }
@@ -235,7 +536,7 @@ void verify_goal()
 {
     bool rangeYTrave = (bola->position_atual.y <= posicoes_barras[1]) && (bola->position_atual.y >= posicoes_barras[4]);
 
-    if (bola->position_atual.y >= (tamanho_campo.y/2) || bola->position_atual.y <= -(tamanho_campo.y / 2)) // limites superior e inferior
+    if (bola->position_atual.y >= (tamanho_campo.y / 2) || bola->position_atual.y <= -(tamanho_campo.y / 2)) // limites superior e inferior
     {
         bola->reset_position();
     }
