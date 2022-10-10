@@ -147,16 +147,24 @@ void draw_field()
     glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
     glEnd();
 
-    //cima (falta criar)
+    //cima
     glBegin(GL_POLYGON);
-    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
     glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
+    glVertex3f(-tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
 
+    glVertex3f(-tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2);
     glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2);
-    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
     glEnd();
 
     //baixo
+    glBegin(GL_POLYGON);
+    glVertex3f(-tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
+    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
+
+    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
+    glVertex3f(-tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
+    
+    glEnd();
 
     glPopMatrix();
 }
