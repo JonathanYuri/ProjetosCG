@@ -86,28 +86,6 @@ void draw_bars()
     for (int i = 0; i < 6; i += 3)    draw_barT(i);
 }
 
-void draw_grid()
-{
-    float division_length = tamanho_campo.x / grid_division;
-
-    glPushMatrix();
-    glTranslatef(.0, .0, proximidade_da_camera);
-    
-    for (int i = 0; i < grid_division; i++)
-    {
-        glColor3f(color_grid[(i % 2) * 3], color_grid[((i % 2) * 3) + 1], color_grid[((i % 2) * 3) + 2]);
-
-        glBegin(GL_POLYGON);
-        glVertex3f((division_length * i) - tamanho_campo.x/2, tamanho_campo.y/2, tamanho_campo.z/2);
-        glVertex3f((division_length * (i + 1)) - tamanho_campo.x/2, tamanho_campo.y/2, tamanho_campo.z/2);
-       
-        glVertex3f((division_length * (i + 1)) - tamanho_campo.x/2, -tamanho_campo.y/2, tamanho_campo.z/2);
-        glVertex3f((division_length * i) - tamanho_campo.x/2, -tamanho_campo.y/2, tamanho_campo.z/2);
-        glEnd();
-    }
-    glPopMatrix();
-}
-
 void draw_lines()
 {
 
@@ -203,7 +181,7 @@ void draw_scoreBoard()
 {
     placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
     glColor3f(1.0, 1.0, 1.0);
-    glRasterPos3f(-0.08f, 1.0f, 0.5f);
+    glRasterPos3f(-0.08f, 0.8f, 0.5f + proximidade_da_camera);
 
     for (char p : placar)
     {
@@ -239,7 +217,6 @@ void displayFcn(void)
 
     draw_bars();
     draw_ball();
-    draw_grid();
 
     draw_scoreBoard();
 
