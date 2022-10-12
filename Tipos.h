@@ -1,5 +1,5 @@
 #pragma once
-#include <GL/GLUT.h>
+#include <GL/glut.h>
 
 struct position
 {

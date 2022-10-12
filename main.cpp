@@ -1,7 +1,7 @@
 ﻿#include <iostream>
-#include <cfloat>
 #include <vector>
 #include <string>
+
 #include "Camera.h"
 #include "Bola.h"
 
@@ -9,6 +9,12 @@ using namespace std;
 
 Camera* camera = new Camera();
 Bola* bola = new Bola();
+
+/* Polimento:
+*  Bresenham (tentar colocar num arquivo)
+*  Bresenham_circles() for's
+*  draw_lines()
+   Menu */
 
 struct tamanho {
     GLfloat x;
@@ -26,11 +32,14 @@ tamanho tamanho_barra = { 0.01f, 0.01f, 0.05f };
 
 tamanho tamanho_campo = { 2.4f, 1.8f, 0.1f };
 //tamanho tamanho_campo = { 1.2f, 0.9f, 0.1f };
-int grid_division = 11;
+
+int grid_division = 13;
 int qnt_pixel_por_zero_ponto_1 = 1;
 
-GLfloat color_grid[] = { .0f, 0.5f, .0f,
-                        .0f, 1.0f, .0f };
+bool menu = false;
+
+GLfloat color_grid[][3] = { 118.0f / 255.0f, 180.0f / 255.0f, 53.0f / 255.0f,
+                            91.0f / 255.0f, 165.0f / 255.0f, 44.0f / 255.0f };
 
 GLfloat posicoes_barras[] = { -(tamanho_campo.x / 2), 0.0366f * (tamanho_campo.y / 0.9f), 0.0f,
                            -(tamanho_campo.x / 2), -0.0366f * (tamanho_campo.y / 0.9f), 0.0f,
@@ -40,7 +49,39 @@ GLfloat posicoes_barras[] = { -(tamanho_campo.x / 2), 0.0366f * (tamanho_campo.y
 tamanho tamanho_barraT = { tamanho_barra.x , 0.0732f * (tamanho_campo.y / 0.9f), tamanho_barra.x };
 
 GLfloat posicoes_barrasT[] = { -(tamanho_campo.x / 2), 0.0f, 0.0f,
-                           (tamanho_campo.x / 2), 0.0f, 0.0f };
+                                (tamanho_campo.x / 2), 0.0f, 0.0f };
+
+vector<GLfloat> faces_campo = {
+    // tras
+    -tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2,
+
+    //esquerda
+    -tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2,
+
+    //direita
+    tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2,
+    tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2,
+    tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2,
+
+    //cima
+    tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2,
+
+    //baixo
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2,
+    tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2,
+    tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2
+};
 
 int pontuacaoA = 0;
 int pontuacaoB = 0;
@@ -48,7 +89,6 @@ int pontuacaoB = 0;
 string placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
 
 void init(void) {
-    /* selecionar cor de fundo (preto) */
     glClearColor(69.0f / 255.0f, 39.0f / 255.0f, .0f / 255.0f, 1.0f); // set background color to black
     //glClearColor(.0, .0, .0, 1.0);
     glEnable(GL_DEPTH_TEST);
@@ -59,47 +99,7 @@ void init(void) {
     glMatrixMode(GL_MODELVIEW);
 }
 
-void draw_bar(int indice)
-{
-    glPushMatrix();
-
-    if (indice < 6) glTranslatef(posicoes_barras[indice] + (tamanho_barra.x / 2), posicoes_barras[indice + 1], proximidade_da_camera + posicoes_barras[indice + 2]);
-    else            glTranslatef(posicoes_barras[indice] - (tamanho_barra.x / 2), posicoes_barras[indice + 1], proximidade_da_camera + posicoes_barras[indice + 2]);
-
-    glTranslatef(.0f, .0f, (tamanho_barra.z / 2.0f) + (tamanho_campo.z / 2.0f));
-    glScalef(tamanho_barra.x, tamanho_barra.y, tamanho_barra.z);
-    glutSolidCube(1.0);
-
-    glPopMatrix();
-}
-
-void draw_barT(int indice)
-{
-    glPushMatrix();
-
-    if (indice < 3) glTranslatef(posicoes_barrasT[indice] + (tamanho_barra.x / 2), posicoes_barrasT[indice + 1], proximidade_da_camera + posicoes_barrasT[indice + 2]);
-    else            glTranslatef(posicoes_barrasT[indice] - (tamanho_barra.x / 2), posicoes_barrasT[indice + 1], proximidade_da_camera + posicoes_barrasT[indice + 2]);
-
-    glTranslatef(.0f, .0f, (tamanho_barra.z / 2.0f) + (tamanho_campo.z / 2.0f) + (tamanho_barra.z / 2.0f));
-    glScalef(tamanho_barraT.x, tamanho_barraT.y, tamanho_barraT.z);
-
-    glutSolidCube(1.0);
-
-    glPopMatrix();
-}
-
-void draw_bars()
-{
-    for (int i = 0; i < 11; i += 3)   draw_bar(i);
-    for (int i = 0; i < 6; i += 3)    draw_barT(i);
-}
-
-int ajustar(float x)
-{
-    return x * 10;
-}
-
-vector<pair<int, int>> Bresenham(int xI, int yI, int xF, int yF)
+vector<pair<int, int>> Bresenham_lines(int xI, int yI, int xF, int yF)
 {
     vector<pair<int, int>> points;
 
@@ -136,18 +136,11 @@ vector<pair<int, int>> TraceLine(int xI, int yI, int xF, int yF)
     vector<pair<int, int>> points;
     if (abs(nX) > abs(nY))
     {
-        points = Bresenham(0, 0, abs(nX), abs(nY));
+        points = Bresenham_lines(0, 0, abs(nX), abs(nY));
     }
     else
     {
-        //cout << "trocar" << endl;
-        points = Bresenham(0, 0, abs(nY), abs(nX));
-    }
-
-    //cout << endl;
-    for (auto p : points)
-    {
-        //cout << "xP: " << p.first << " yP: " << p.second << endl;
+        points = Bresenham_lines(0, 0, abs(nY), abs(nX));
     }
 
     for (int i = 0; i < points.size(); i++)
@@ -169,12 +162,6 @@ vector<pair<int, int>> TraceLine(int xI, int yI, int xF, int yF)
             points[i].second = -points[i].second;
         }
         points[i].second += yI;
-    }
-
-    //cout << endl;
-    for (auto p : points)
-    {
-        //cout << "xP: " << p.first << " yP: " << p.second << endl;
     }
 
     return points;
@@ -244,12 +231,108 @@ vector <pair<int, int>> Bresenham_circles(int raio, int qnt_quadrantes)
     return pontos;
 }
 
+void draw_bar(int indice)
+{
+    glPushMatrix();
+
+        if (indice < 6) glTranslatef(posicoes_barras[indice] + (tamanho_barra.x / 2), posicoes_barras[indice + 1], proximidade_da_camera + posicoes_barras[indice + 2]);
+        else            glTranslatef(posicoes_barras[indice] - (tamanho_barra.x / 2), posicoes_barras[indice + 1], proximidade_da_camera + posicoes_barras[indice + 2]);
+
+        glTranslatef(.0f, .0f, (tamanho_barra.z / 2.0f) + (tamanho_campo.z / 2.0f));
+        glScalef(tamanho_barra.x, tamanho_barra.y, tamanho_barra.z);
+        glutSolidCube(1.0);
+
+    glPopMatrix();
+}
+
+void draw_barT(int indice)
+{
+    glPushMatrix();
+
+        if (indice < 3) glTranslatef(posicoes_barrasT[indice] + (tamanho_barra.x / 2), posicoes_barrasT[indice + 1], proximidade_da_camera + posicoes_barrasT[indice + 2]);
+        else            glTranslatef(posicoes_barrasT[indice] - (tamanho_barra.x / 2), posicoes_barrasT[indice + 1], proximidade_da_camera + posicoes_barrasT[indice + 2]);
+
+        glTranslatef(.0f, .0f, (tamanho_barra.z / 2.0f) + (tamanho_campo.z / 2.0f) + (tamanho_barra.z / 2.0f));
+        glScalef(tamanho_barraT.x, tamanho_barraT.y, tamanho_barraT.z);
+
+        glutSolidCube(1.0);
+
+    glPopMatrix();
+}
+
+void draw_bars()
+{
+    glColor3f(1.0, 1.0, 1.0);
+    for (int i = 0; i < 11; i += 3)   draw_bar(i);
+    for (int i = 0; i < 6; i += 3)    draw_barT(i);
+}
+
+int ajustar(float x)
+{
+    return x * 10;
+}
+
+void draw_cornerKick(float rotate, float translateX, float translateY, vector<pair<float, float>> points)
+{
+    glPushMatrix();
+        glTranslatef(translateX, translateY, .0f);
+        glRotatef(rotate, 0, 0, 1);
+
+        glBegin(GL_LINES);
+            for (int i = 0; i < points.size(); i++)
+            {
+                if (i + 1 < points.size())
+                {
+                    glVertex3f(points[i].first, points[i].second, 0.001f);
+                    glVertex3f(points[i + 1].first, points[i + 1].second, 0.001f);
+                }
+            }
+        glEnd();
+    glPopMatrix();
+}
+
+void draw_halfMoon(float translateX, bool esquerdo, vector<pair<float, float>> points)
+{
+    glPushMatrix();
+        glTranslatef(translateX, 0.0f, 0.0f);
+
+        glBegin(GL_LINES);
+            for (int i = 0; i < points.size(); i++)
+            {
+                if (i + 1 < points.size())
+                {
+                    if (esquerdo)
+                    {
+                        if (points[i].first >= 0.08)
+                        {
+                            glVertex3f(points[i].first, points[i].second, 0.001f);
+                            glVertex3f(points[i + 1].first, points[i + 1].second, 0.001f);
+                        }
+                    }
+                    else
+                    {
+                        if (points[i].first <= -0.08)
+                        {
+                            glVertex3f(points[i].first, points[i].second, 0.001f);
+                            glVertex3f(points[i + 1].first, points[i + 1].second, 0.001f);
+                        }
+                    }
+                }
+            }
+        glEnd();
+    glPopMatrix();
+}
+
 void draw_circles()
 {
+    glColor3f(1.0, 1.0, 1.0);
+    glLineWidth(2.0f);
+
     vector<pair<int, int>> pointInt;
     float divisor = 1000.0f;
+
     float raio = 0.0915 * (tamanho_campo.x / 1.2f);
-    pointInt = Bresenham_circles(raio * 1000, 4);
+    pointInt = Bresenham_circles(raio * divisor, 4);
 
     vector<pair<float, float>> point;
     for (auto p : pointInt)
@@ -258,145 +341,60 @@ void draw_circles()
     }
 
     glPushMatrix();
-    glColor3f(1.0, .0, .0);
-    glLineWidth(2.0f);
-    glTranslatef(.0, .0, proximidade_da_camera + (tamanho_campo.z / 2.0f));
 
-    // circulo do meio
-    glBegin(GL_POINTS);
-    for (auto p : point)
-    {
-        glVertex3f(p.first, p.second, .0f);
-    }
-    glEnd();
+        glTranslatef(.0, .0, proximidade_da_camera + (tamanho_campo.z / 2.0f));
 
-    glColor3f(.0, .0, 1.0f);
-
-    glBegin(GL_LINES);
-    for (int i = 0; i < point.size(); i++)
-    {
-        if (i + 1 < point.size())
-        {
-            glVertex3f(point[i].first, point[i].second, 0.001f);
-            glVertex3f(point[i + 1].first, point[i + 1].second, 0.001f);
-        }
-    }
-    glEnd();
-
-    //semicirculo do lado direito
-    glPushMatrix();
-    glTranslatef((tamanho_campo.x / 2) - 0.16f * (tamanho_campo.x / 1.2f), 0.0f, 0.0f);
-    glBegin(GL_LINES);
-    for (int i = 0; i < point.size(); i++)
-    {
-        if (i + 1 < point.size())
-        {
-            if (point[i].first <= -0.08)
+        // circulo do meio
+        glBegin(GL_LINES);
+            for (int i = 0; i < point.size(); i++)
             {
-                glVertex3f(point[i].first, point[i].second, 0.001f);
-                glVertex3f(point[i + 1].first, point[i + 1].second, 0.001f);
+                if (i + 1 < point.size())
+                {
+                    glVertex3f(point[i].first, point[i].second, 0.001f);
+                    glVertex3f(point[i + 1].first, point[i + 1].second, 0.001f);
+                }
             }
-        }
-    }
-    glEnd();
-    glPopMatrix();
+        glEnd();
 
-    // semicirculo do lado esquerdo
-    glPushMatrix();
-    glTranslatef(-(tamanho_campo.x / 2) + 0.16f * (tamanho_campo.x / 1.2f), 0.0f, 0.0f);
-    glBegin(GL_LINES);
-    for (int i = 0; i < point.size(); i++)
-    {
-        if (i + 1 < point.size())
+        //semicirculo do lado direito
+        draw_halfMoon((tamanho_campo.x / 2) - 0.16f * (tamanho_campo.x / 1.2f), false, point);
+
+        // semicirculo do lado esquerdo
+        draw_halfMoon(-(tamanho_campo.x / 2) + 0.16f * (tamanho_campo.x / 1.2f), true, point);
+
+        // Escanteios
+
+        point.clear();
+        pointInt.clear();
+
+        raio = 0.01 * (tamanho_campo.x / 1.2f);
+        pointInt = Bresenham_circles(raio * divisor, 1);
+
+        for (auto p : pointInt)
         {
-            if (point[i].first >= 0.08)
-            {
-                glVertex3f(point[i].first, point[i].second, 0.001f);
-                glVertex3f(point[i + 1].first, point[i + 1].second, 0.001f);
-            }
+            point.push_back({ p.first / divisor, p.second / divisor });
         }
-    }
-    glEnd();
-    glPopMatrix();
 
-    point.clear();
-    pointInt.clear();
+        //Escanteio inferior esquerdo
+        draw_cornerKick(0.0f, -tamanho_campo.x / 2, -tamanho_campo.y / 2, point);
 
-    raio = 0.01 * (tamanho_campo.x / 1.2f);
-    pointInt = Bresenham_circles(raio * 1000, 1);
+        //Escanteio inferior direito
+        draw_cornerKick(90.0f, tamanho_campo.x / 2, -tamanho_campo.y / 2, point);
 
-    for (auto p : pointInt)
-    {
-        point.push_back({ p.first / divisor, p.second / divisor });
-    }
-    //Escanteio inferior esquerdo
-    glPushMatrix();
-    glTranslatef(-tamanho_campo.x / 2, -tamanho_campo.y / 2, .0f);
-    glBegin(GL_LINES);
-    for (int i = 0; i < point.size(); i++)
-    {
-        if (i + 1 < point.size())
-        {
-            glVertex3f(point[i].first, point[i].second, 0.001f);
-            glVertex3f(point[i + 1].first, point[i + 1].second, 0.001f);
-        }
-    }
-    glEnd();
-    glPopMatrix();
+        //Escanteio superior direito
+        draw_cornerKick(180.0f, tamanho_campo.x / 2, tamanho_campo.y / 2, point);
 
-    //Escanteio inferior direito
-    glPushMatrix();
-    glTranslatef(tamanho_campo.x / 2, -tamanho_campo.y / 2, .0f);
-    glRotatef(90, 0, 0, 1);
-    glBegin(GL_LINES);
-    for (int i = 0; i < point.size(); i++)
-    {
-        if (i + 1 < point.size())
-        {
-            glVertex3f(point[i].first, point[i].second, 0.001f);
-            glVertex3f(point[i + 1].first, point[i + 1].second, 0.001f);
-        }
-    }
-    glEnd();
-    glPopMatrix();
-
-    //Escanteio superior direito
-    glPushMatrix();
-    glTranslatef(tamanho_campo.x / 2, tamanho_campo.y / 2, .0f);
-    glRotatef(180, 0, 0, 1);
-    glBegin(GL_LINES);
-    for (int i = 0; i < point.size(); i++)
-    {
-        if (i + 1 < point.size())
-        {
-            glVertex3f(point[i].first, point[i].second, 0.001f);
-            glVertex3f(point[i + 1].first, point[i + 1].second, 0.001f);
-        }
-    }
-    glEnd();
-    glPopMatrix();
-
-    //Escanteio superior esquerdo
-    glPushMatrix();
-    glTranslatef(-tamanho_campo.x / 2, tamanho_campo.y / 2, .0f);
-    glRotatef(270, 0, 0, 1);
-    glBegin(GL_LINES);
-    for (int i = 0; i < point.size(); i++)
-    {
-        if (i + 1 < point.size())
-        {
-            glVertex3f(point[i].first, point[i].second, 0.001f);
-            glVertex3f(point[i + 1].first, point[i + 1].second, 0.001f);
-        }
-    }
-    glEnd();
-    glPopMatrix();
+        //Escanteio superior esquerdo
+        draw_cornerKick(270.0f, -tamanho_campo.x / 2, tamanho_campo.y / 2, point);
 
     glPopMatrix();
 }
 
 void draw_lines()
 {
+    glColor3f(1.0, 1.0, 1.0);
+    glLineWidth(2.0f);
+
     float divisor = 10.0f;
     divisor *= qnt_pixel_por_zero_ponto_1;
 
@@ -582,38 +580,23 @@ void draw_lines()
         yF * qnt_pixel_por_zero_ponto_1));
 
     glPushMatrix();
-    glColor3f(1.0, .0, .0);
-    glLineWidth(2.0f);
-    glTranslatef(.0, .0, proximidade_da_camera + (tamanho_campo.z / 2.0f));
-
-    glBegin(GL_POINTS);
-    for (auto point : points)
-    {
-        for (auto p : point)
-        {
-            //cout << "xP: " << p.first / 10.0f << " yP: " << p.second / 10.0f << endl;
-            glVertex3f(p.first / divisor, p.second / divisor, .0f);
-        }
-    }
-    glEnd();
-
-    glColor3f(.0, .0, 1.0f);
-    glBegin(GL_LINES);
-    for (auto point : points)
-    {
-        for (int i = 0; i < point.size(); i++)
-        {
-            if (i + 1 < point.size())
+        glTranslatef(.0, .0, proximidade_da_camera + (tamanho_campo.z / 2.0f));
+        
+        glBegin(GL_LINES);
+            for (auto point : points)
             {
-                glVertex3f(point[i].first / divisor, point[i].second / divisor, 0.001f);
-                glVertex3f(point[i + 1].first / divisor, point[i + 1].second / divisor, 0.001f);
+                for (int i = 0; i < point.size(); i++)
+                {
+                    if (i + 1 < point.size())
+                    {
+                        glVertex3f(point[i].first / divisor, point[i].second / divisor, 0.001f);
+                        glVertex3f(point[i + 1].first / divisor, point[i + 1].second / divisor, 0.001f);
+                    }
+                }
             }
-        }
-    }
-    glEnd();
+        glEnd();
 
     glPopMatrix();
-    //system("pause");
 }
 
 void draw_field()
@@ -621,91 +604,56 @@ void draw_field()
     float division_length = tamanho_campo.x / grid_division;
 
     glPushMatrix();
-    glTranslatef(.0, .0, proximidade_da_camera);
+        glTranslatef(.0, .0, proximidade_da_camera);
 
-    for (int i = 0; i < grid_division; i++)
-    {
-        glColor3f(color_grid[(i % 2) * 3], color_grid[((i % 2) * 3) + 1], color_grid[((i % 2) * 3) + 2]);
+        for (int i = 0; i < grid_division; i++)
+        {
+            glColor3f(color_grid[(i % 2)][0], color_grid[(i % 2)][1], color_grid[(i % 2)][2]);
 
-        //frente
-        glBegin(GL_POLYGON);
-        glVertex3f((division_length * i) - tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
-        glVertex3f((division_length * (i + 1)) - tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
+            //frente
+            glBegin(GL_POLYGON);
+                glVertex3f((division_length * i) - tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
+                glVertex3f((division_length * (i + 1)) - tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
 
-        glVertex3f((division_length * (i + 1)) - tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
-        glVertex3f((division_length * i) - tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
-        glEnd();
-    }
+                glVertex3f((division_length * (i + 1)) - tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
+                glVertex3f((division_length * i) - tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
+            glEnd();
+        }
 
-    //trás
-    glBegin(GL_POLYGON);
-    glVertex3f(-tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2);
-    glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2);
+        for (int i = 0; i < faces_campo.size(); i+=12)
+        {
+            glBegin(GL_POLYGON);
+                glVertex3f(faces_campo[i], faces_campo[i+1], faces_campo[i+2]);
+                glVertex3f(faces_campo[i+3], faces_campo[i+4], faces_campo[i+5]);
 
-    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
-    glVertex3f(-tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
-    glEnd();
-
-    //esquerda
-    glBegin(GL_POLYGON);
-    glVertex3f(-tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
-    glVertex3f(-tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
-
-    glVertex3f(-tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
-    glVertex3f(-tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2);
-    glEnd();
-
-    //direita
-    glBegin(GL_POLYGON);
-    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
-    glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
-
-    glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2);
-    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
-    glEnd();
-
-    //cima
-    glBegin(GL_POLYGON);
-    glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
-    glVertex3f(-tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
-
-    glVertex3f(-tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2);
-    glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2);
-    glEnd();
-
-    //baixo
-    glBegin(GL_POLYGON);
-    glVertex3f(-tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
-    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
-
-    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
-    glVertex3f(-tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2);
-
-    glEnd();
+                glVertex3f(faces_campo[i+6], faces_campo[i+7], faces_campo[i+8]);
+                glVertex3f(faces_campo[i+9], faces_campo[i+10], faces_campo[i+11]);
+            glEnd();
+        }
 
     glPopMatrix();
 }
 
 void draw_ball()
 {
+    glColor3f(1.0, 1.0, 1.0);
     glPushMatrix();
-    glTranslatef(bola->position_atual.x, bola->position_atual.y, proximidade_da_camera + bola->raio + (tamanho_campo.z / 2));
+        glTranslatef(bola->position_atual.x, bola->position_atual.y, proximidade_da_camera + bola->raio + (tamanho_campo.z / 2));
 
-    glPushMatrix();
+        glPushMatrix();
 
-    glRotatef(bola->position_atual.x * bola->velocidadeRotacao, 0, 1, 0);
-    glRotatef(bola->position_atual.y * bola->velocidadeRotacao, 1, 0, 0);
-    glutWireSphere(bola->raio, bola->slices, bola->stacks);
+            glRotatef(bola->position_atual.x * bola->velocidadeRotacao, 0, 1, 0);
+            glRotatef(bola->position_atual.y * bola->velocidadeRotacao, 1, 0, 0);
+            glutWireSphere(bola->raio, bola->slices, bola->stacks);
 
-    glPopMatrix();
-
+        glPopMatrix();
     glPopMatrix();
 }
 
 void draw_scoreBoard()
 {
-    placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
     glColor3f(1.0, 1.0, 1.0);
+    placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
     glRasterPos3f(-0.08f, 0.8f, 0.5f + proximidade_da_camera);
 
     for (char p : placar)
@@ -714,11 +662,8 @@ void draw_scoreBoard()
     }
 }
 
-void displayFcn(void)
+void to_position_camera()
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glLoadIdentity();
-
     if (camera->mode == '1')
     {
         gluLookAt(camera->position_atual.x, camera->position_atual.y, camera->position_atual.z,
@@ -731,14 +676,16 @@ void displayFcn(void)
             camera->targetAtual.x, camera->targetAtual.y + 7.0, camera->targetAtual.z,
             0, 1, 0);
     }
+}
 
-    /*glBegin(GL_LINES);
-        glVertex3f(0, 0, 0);
-        glVertex3f(1, 0, 0);
-    glEnd();*/
+void displayFcn()
+{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glLoadIdentity();
+
+    to_position_camera();
 
     draw_field();
-    glColor3f(1.0, 1.0, 1.0);
 
     draw_bars();
     draw_ball();
@@ -748,6 +695,18 @@ void displayFcn(void)
     draw_circles();
 
     glutSwapBuffers();
+}
+
+void displayMenu()
+{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glutSwapBuffers();
+}
+
+void display(void)
+{
+    if (menu)   displayMenu();
+    else    displayFcn();
 }
 
 void verify_goal()
@@ -783,6 +742,11 @@ void keyboard_handler(unsigned char key, int x, int y)
         verify_goal();
     }
 
+    if (key == 'm' || key == 'M')
+    {
+        menu = !menu;
+    }
+
     glutPostRedisplay();
 }
 
@@ -806,7 +770,7 @@ int main(int argc, char** argv)
     glutCreateWindow("Campo");
     init();
 
-    glutDisplayFunc(displayFcn);
+    glutDisplayFunc(display);
     glutTimerFunc(0, timer, 0);
     glutKeyboardFunc(keyboard_handler);
     glutSpecialFunc(specialKeys_handler);
