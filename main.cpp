@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <cfloat>
 #include <vector>
 #include <string>
@@ -15,6 +15,9 @@ struct tamanho {
     GLfloat y;
     GLfloat z;
 };
+
+GLint width = 900;
+GLint height = 900;
 
 GLfloat proximidade_da_camera = 2.5f;
 float pixel_size = 0.01f;
@@ -106,11 +109,11 @@ vector<pair<int, int>> Bresenham(int xI, int yI, int xF, int yF)
     int dAtual = 2 * dy - dx;
     int dE = 2 * dy;
     int dNE = 2 * (dy - dx);
-    
+
     int xA = xI;
     int yA = yI;
 
-    points.push_back({xI, yI});
+    points.push_back({ xI, yI });
     while ((xA != xF) || (yA != yF))
     {
         if (dAtual < 0)     dAtual += dE;
@@ -120,7 +123,7 @@ vector<pair<int, int>> Bresenham(int xI, int yI, int xF, int yF)
             yA += 1;
         }
         xA += 1;
-        points.push_back({xA, yA});
+        points.push_back({ xA, yA });
     }
     return points;
 }
@@ -129,7 +132,7 @@ vector<pair<int, int>> TraceLine(int xI, int yI, int xF, int yF)
 {
     int nX = xF - xI;
     int nY = yF - yI;
-    
+
     vector<pair<int, int>> points;
     if (abs(nX) > abs(nY))
     {
@@ -140,7 +143,7 @@ vector<pair<int, int>> TraceLine(int xI, int yI, int xF, int yF)
         //cout << "trocar" << endl;
         points = Bresenham(0, 0, abs(nY), abs(nX));
     }
-    
+
     //cout << endl;
     for (auto p : points)
     {
@@ -177,14 +180,14 @@ vector<pair<int, int>> TraceLine(int xI, int yI, int xF, int yF)
     return points;
 }
 
-vector <pair<int, int>> Bresenham_circles()
+vector <pair<int, int>> Bresenham_circles(int raio, int qnt_quadrantes)
 {
     vector <pair<int, int>> pontos;
-    float raio = 0.0915;
-    int x = 0, y = 9;
+    int x = 0, y = raio;
     float d = (5 / 4) - y;
 
-    pontos.push_back({x, y});
+    //primeiro octante, primeiro quadrante
+    pontos.push_back({ x, y });
     while (y > x)
     {
         if (d >= 0)
@@ -198,20 +201,198 @@ vector <pair<int, int>> Bresenham_circles()
             d += (2 * x) + 3;
             x++;
         }
-        pontos.push_back({x, y});
+        pontos.push_back({ x, y });
     }
-    return pontos;
-    /*for (auto p : pontos)
+    vector <pair<int, int>> ponto;
+
+    //segundo octante, primeiro quadrante
+    for (auto p : pontos)
     {
-        cout << "x = " << p.first << " y = " << p.second << endl;
+        ponto.push_back({ p.second, p.first });
     }
-    system("pause");*/
+    for (int i = ponto.size() - 1; i >= 0; i--)
+    {
+        pontos.push_back({ ponto[i].first, ponto[i].second });
+    }
+    ponto.clear();
+
+    if (qnt_quadrantes == 1)    return pontos;
+
+    //quarto quadrante, 2 octantes
+    for (auto p : pontos)
+    {
+        ponto.push_back({ p.first, -p.second });
+    }
+    for (int i = ponto.size() - 1; i >= 0; i--)
+    {
+        pontos.push_back({ ponto[i].first, ponto[i].second });
+    }
+    ponto.clear();
+
+    if (qnt_quadrantes == 2)    return pontos;
+
+    for (auto p : pontos)
+    {
+        ponto.push_back({ -p.first, p.second });
+    }
+    for (int i = ponto.size() - 1; i >= 0; i--)
+    {
+        pontos.push_back({ ponto[i].first, ponto[i].second });
+    }
+    ponto.clear();
+
+    return pontos;
 }
 
 void draw_circles()
 {
-    vector<vector<pair<int, int>>> pontos;
+    vector<pair<int, int>> pointInt;
+    float divisor = 1000.0f;
+    float raio = 0.0915 * (tamanho_campo.x / 1.2f);
+    pointInt = Bresenham_circles(raio * 1000, 4);
 
+    vector<pair<float, float>> point;
+    for (auto p : pointInt)
+    {
+        point.push_back({ p.first / divisor, p.second / divisor });
+    }
+
+    glPushMatrix();
+    glColor3f(1.0, .0, .0);
+    glLineWidth(2.0f);
+    glTranslatef(.0, .0, proximidade_da_camera + (tamanho_campo.z / 2.0f));
+
+    // circulo do meio
+    glBegin(GL_POINTS);
+    for (auto p : point)
+    {
+        glVertex3f(p.first, p.second, .0f);
+    }
+    glEnd();
+
+    glColor3f(.0, .0, 1.0f);
+
+    glBegin(GL_LINES);
+    for (int i = 0; i < point.size(); i++)
+    {
+        if (i + 1 < point.size())
+        {
+            glVertex3f(point[i].first, point[i].second, 0.001f);
+            glVertex3f(point[i + 1].first, point[i + 1].second, 0.001f);
+        }
+    }
+    glEnd();
+
+    //semicirculo do lado direito
+    glPushMatrix();
+    glTranslatef((tamanho_campo.x / 2) - 0.16f * (tamanho_campo.x / 1.2f), 0.0f, 0.0f);
+    glBegin(GL_LINES);
+    for (int i = 0; i < point.size(); i++)
+    {
+        if (i + 1 < point.size())
+        {
+            if (point[i].first <= -0.08)
+            {
+                glVertex3f(point[i].first, point[i].second, 0.001f);
+                glVertex3f(point[i + 1].first, point[i + 1].second, 0.001f);
+            }
+        }
+    }
+    glEnd();
+    glPopMatrix();
+
+    // semicirculo do lado esquerdo
+    glPushMatrix();
+    glTranslatef(-(tamanho_campo.x / 2) + 0.16f * (tamanho_campo.x / 1.2f), 0.0f, 0.0f);
+    glBegin(GL_LINES);
+    for (int i = 0; i < point.size(); i++)
+    {
+        if (i + 1 < point.size())
+        {
+            if (point[i].first >= 0.08)
+            {
+                glVertex3f(point[i].first, point[i].second, 0.001f);
+                glVertex3f(point[i + 1].first, point[i + 1].second, 0.001f);
+            }
+        }
+    }
+    glEnd();
+    glPopMatrix();
+
+    point.clear();
+    pointInt.clear();
+
+    raio = 0.01 * (tamanho_campo.x / 1.2f);
+    pointInt = Bresenham_circles(raio * 1000, 1);
+
+    for (auto p : pointInt)
+    {
+        point.push_back({ p.first / divisor, p.second / divisor });
+    }
+    //Escanteio inferior esquerdo
+    glPushMatrix();
+    glTranslatef(-tamanho_campo.x / 2, -tamanho_campo.y / 2, .0f);
+    glBegin(GL_LINES);
+    for (int i = 0; i < point.size(); i++)
+    {
+        if (i + 1 < point.size())
+        {
+            glVertex3f(point[i].first, point[i].second, 0.001f);
+            glVertex3f(point[i + 1].first, point[i + 1].second, 0.001f);
+        }
+    }
+    glEnd();
+    glPopMatrix();
+
+    //Escanteio inferior direito
+    glPushMatrix();
+    glTranslatef(tamanho_campo.x / 2, -tamanho_campo.y / 2, .0f);
+    glRotatef(90, 0, 0, 1);
+    glBegin(GL_LINES);
+    for (int i = 0; i < point.size(); i++)
+    {
+        if (i + 1 < point.size())
+        {
+            glVertex3f(point[i].first, point[i].second, 0.001f);
+            glVertex3f(point[i + 1].first, point[i + 1].second, 0.001f);
+        }
+    }
+    glEnd();
+    glPopMatrix();
+
+    //Escanteio superior direito
+    glPushMatrix();
+    glTranslatef(tamanho_campo.x / 2, tamanho_campo.y / 2, .0f);
+    glRotatef(180, 0, 0, 1);
+    glBegin(GL_LINES);
+    for (int i = 0; i < point.size(); i++)
+    {
+        if (i + 1 < point.size())
+        {
+            glVertex3f(point[i].first, point[i].second, 0.001f);
+            glVertex3f(point[i + 1].first, point[i + 1].second, 0.001f);
+        }
+    }
+    glEnd();
+    glPopMatrix();
+
+    //Escanteio superior esquerdo
+    glPushMatrix();
+    glTranslatef(-tamanho_campo.x / 2, tamanho_campo.y / 2, .0f);
+    glRotatef(270, 0, 0, 1);
+    glBegin(GL_LINES);
+    for (int i = 0; i < point.size(); i++)
+    {
+        if (i + 1 < point.size())
+        {
+            glVertex3f(point[i].first, point[i].second, 0.001f);
+            glVertex3f(point[i + 1].first, point[i + 1].second, 0.001f);
+        }
+    }
+    glEnd();
+    glPopMatrix();
+
+    glPopMatrix();
 }
 
 void draw_lines()
@@ -230,9 +411,9 @@ void draw_lines()
     yF = ajustar(-tamanho_campo.y / 2.0f);
 
     points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
-                               yI * qnt_pixel_por_zero_ponto_1,
-                               xF * qnt_pixel_por_zero_ponto_1,
-                               yF * qnt_pixel_por_zero_ponto_1));
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
 
     // linha esquerda
     xI = ajustar(-tamanho_campo.x / 2);
@@ -324,20 +505,20 @@ void draw_lines()
     xF = ajustar(tamanho_campo.x / 2);
     yF = ajustar(0.1384f);
 
-    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
-        yI* qnt_pixel_por_zero_ponto_1,
-        xF* qnt_pixel_por_zero_ponto_1,
-        yF* qnt_pixel_por_zero_ponto_1));
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
 
     xI = ajustar((tamanho_campo.x / 2) - 0.055f);
     yI = ajustar(-0.1384f);
     xF = ajustar(tamanho_campo.x / 2);
     yF = ajustar(-0.1384f);
 
-    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
-        yI* qnt_pixel_por_zero_ponto_1,
-        xF* qnt_pixel_por_zero_ponto_1,
-        yF* qnt_pixel_por_zero_ponto_1));
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
 
     // area esquerda
     xI = ajustar(-0.435f * (tamanho_campo.x / 1.2f));
@@ -345,60 +526,60 @@ void draw_lines()
     xF = ajustar(-0.435f * (tamanho_campo.x / 1.2f));
     yF = ajustar(-0.2016f * (tamanho_campo.y / 0.9f));
 
-    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
-        yI* qnt_pixel_por_zero_ponto_1,
-        xF* qnt_pixel_por_zero_ponto_1,
-        yF* qnt_pixel_por_zero_ponto_1));
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
 
     xI = ajustar(-0.435f * (tamanho_campo.x / 1.2f));
     yI = ajustar(0.2016f * (tamanho_campo.y / 0.9f));
     xF = ajustar(-(tamanho_campo.x / 2));
     yF = ajustar(0.2016f * (tamanho_campo.y / 0.9f));
 
-    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
-        yI* qnt_pixel_por_zero_ponto_1,
-        xF* qnt_pixel_por_zero_ponto_1,
-        yF* qnt_pixel_por_zero_ponto_1));
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
 
     xI = ajustar(-0.435f * (tamanho_campo.x / 1.2f));
     yI = ajustar(-0.2016f * (tamanho_campo.y / 0.9f));
     xF = ajustar(-(tamanho_campo.x / 2));
     yF = ajustar(-0.2016f * (tamanho_campo.y / 0.9f));
 
-    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
-        yI* qnt_pixel_por_zero_ponto_1,
-        xF* qnt_pixel_por_zero_ponto_1,
-        yF* qnt_pixel_por_zero_ponto_1));
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
 
     xI = ajustar(-(tamanho_campo.x / 2) + 0.055f);
     yI = ajustar(0.1384f);
     xF = ajustar(-(tamanho_campo.x / 2) + 0.055f);
     yF = ajustar(-0.1384f);
 
-    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
-        yI* qnt_pixel_por_zero_ponto_1,
-        xF* qnt_pixel_por_zero_ponto_1,
-        yF* qnt_pixel_por_zero_ponto_1));
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
 
     xI = ajustar(-(tamanho_campo.x / 2) + 0.055f);
     yI = ajustar(0.1384f);
     xF = ajustar(-(tamanho_campo.x / 2));
     yF = ajustar(0.1384f);
 
-    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
-        yI* qnt_pixel_por_zero_ponto_1,
-        xF* qnt_pixel_por_zero_ponto_1,
-        yF* qnt_pixel_por_zero_ponto_1));
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
 
     xI = ajustar(-(tamanho_campo.x / 2) + 0.055f);
     yI = ajustar(-0.1384f);
     xF = ajustar(-(tamanho_campo.x / 2));
     yF = ajustar(-0.1384f);
 
-    points.push_back(TraceLine(xI* qnt_pixel_por_zero_ponto_1,
-        yI* qnt_pixel_por_zero_ponto_1,
-        xF* qnt_pixel_por_zero_ponto_1,
-        yF* qnt_pixel_por_zero_ponto_1));
+    points.push_back(TraceLine(xI * qnt_pixel_por_zero_ponto_1,
+        yI * qnt_pixel_por_zero_ponto_1,
+        xF * qnt_pixel_por_zero_ponto_1,
+        yF * qnt_pixel_por_zero_ponto_1));
 
     glPushMatrix();
     glColor3f(1.0, .0, .0);
@@ -424,8 +605,8 @@ void draw_lines()
         {
             if (i + 1 < point.size())
             {
-                glVertex3f(point[i].first / divisor, point[i].second / divisor, 0.01f);
-                glVertex3f(point[i + 1].first / divisor, point[i + 1].second / divisor, 0.01f);
+                glVertex3f(point[i].first / divisor, point[i].second / divisor, 0.001f);
+                glVertex3f(point[i + 1].first / divisor, point[i + 1].second / divisor, 0.001f);
             }
         }
     }
@@ -564,6 +745,7 @@ void displayFcn(void)
 
     draw_scoreBoard();
     draw_lines();
+    draw_circles();
 
     glutSwapBuffers();
 }
@@ -619,7 +801,7 @@ int main(int argc, char** argv)
 {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowSize(1200, 900);
+    glutInitWindowSize(width, height);
     glutInitWindowPosition(0, 0);
     glutCreateWindow("Campo");
     init();
