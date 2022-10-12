@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <cfloat>
 #include <vector>
 #include <string>
@@ -175,6 +175,43 @@ vector<pair<int, int>> TraceLine(int xI, int yI, int xF, int yF)
     }
 
     return points;
+}
+
+vector <pair<int, int>> Bresenham_circles()
+{
+    vector <pair<int, int>> pontos;
+    float raio = 0.0915;
+    int x = 0, y = 9;
+    float d = (5 / 4) - y;
+
+    pontos.push_back({x, y});
+    while (y > x)
+    {
+        if (d >= 0)
+        {
+            d += (2 * x) - (2 * y) + 5;
+            x++;
+            y--;
+        }
+        else
+        {
+            d += (2 * x) + 3;
+            x++;
+        }
+        pontos.push_back({x, y});
+    }
+    return pontos;
+    /*for (auto p : pontos)
+    {
+        cout << "x = " << p.first << " y = " << p.second << endl;
+    }
+    system("pause");*/
+}
+
+void draw_circles()
+{
+    vector<vector<pair<int, int>>> pontos;
+
 }
 
 void draw_lines()
@@ -363,7 +400,6 @@ void draw_lines()
         xF* qnt_pixel_por_zero_ponto_1,
         yF* qnt_pixel_por_zero_ponto_1));
 
-
     glPushMatrix();
     glColor3f(1.0, .0, .0);
     glLineWidth(2.0f);
@@ -388,8 +424,8 @@ void draw_lines()
         {
             if (i + 1 < point.size())
             {
-                glVertex3f(point[i].first / divisor, point[i].second / divisor, .0f);
-                glVertex3f(point[i + 1].first / divisor, point[i + 1].second / divisor, .0f);
+                glVertex3f(point[i].first / divisor, point[i].second / divisor, 0.01f);
+                glVertex3f(point[i + 1].first / divisor, point[i + 1].second / divisor, 0.01f);
             }
         }
     }
