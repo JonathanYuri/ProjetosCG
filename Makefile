@@ -13,7 +13,7 @@ ARG = -lGL -lGLU -lglut
 endif
 
 all:
-	g++ main.cpp Camera.cpp Bola.cpp -o main.exe $(ARG)
+	g++ main.cpp Camera.cpp Bola.cpp Bresenham.cpp -o main.exe $(ARG)
 	./main.exe
 
 clean:
