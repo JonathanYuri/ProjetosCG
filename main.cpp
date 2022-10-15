@@ -11,17 +11,26 @@ using namespace std;
 Camera* camera = new Camera();
 Bola* bola = new Bola();
 
-/* Menu */
-
 struct tamanho {
     GLfloat x;
     GLfloat y;
     GLfloat z;
 };
 
-bool menu = false;
 int grid_division_field = 13;
 unsigned int delay = 1000 / 60;
+
+/* Menu */
+
+bool menu = true;
+
+vector<string> comandos = {"{W, A, S, D}: rotacionar a camera",
+                           "{Q, E}: rotacionar o eixo z da camera",
+                           "SETAS: {UP, LEFT, DOWN, RIGHT}: movimentar a camera",
+                           "{1, 2}: alterar o modo da camera",
+                           "{I, J, K, L}: movimentar a bola",
+                           "{M}: desativa / ativar o menu"
+};
 
 /* Window */
 
@@ -130,8 +139,7 @@ int pontuacaoB = 0;
 string placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
 
 void init(void) {
-    glClearColor(69.0f / 255.0f, 39.0f / 255.0f, .0f / 255.0f, 1.0f);
-    //glClearColor(.0, .0, .0, 1.0);
+    glClearColor(.0, .0, .0, 1.0);
     glEnable(GL_DEPTH_TEST);
 
     glMatrixMode(GL_PROJECTION);
@@ -357,16 +365,21 @@ void draw_ball()
     glPopMatrix();
 }
 
+void draw_text(string str)
+{
+    for (char p : str)
+    {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, p);
+    }
+}
+
 void draw_scoreBoard()
 {
     glColor3f(1.0, 1.0, 1.0);
     placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
     glRasterPos3f(-0.05f, 0.8f, 0.5f + proximidade_da_camera);
 
-    for (char p : placar)
-    {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, p);
-    }
+    draw_text(placar);
 }
 
 void to_position_camera()
@@ -388,6 +401,8 @@ void to_position_camera()
 void displayField()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(69.0f / 255.0f, 39.0f / 255.0f, .0f / 255.0f, 1.0f); // marrom
+
     glLoadIdentity();
 
     to_position_camera();
@@ -407,6 +422,29 @@ void displayField()
 void displayMenu()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glLoadIdentity();
+
+    glClearColor(.0, .0, .0, 1.0);
+
+    gluLookAt(0.0f, 0.0f, 5.0f,
+              0.0f, 0.0f, 0.5f,
+              0, 1, 0);
+
+    glColor3f(1.0, 1.0, 1.0);
+
+    string menu = "MENU";
+
+    // draw menu
+    glRasterPos3f(-0.05f, 0.5f, 0.5f + proximidade_da_camera);
+    draw_text(menu);
+
+    // draw commands menu
+    for (unsigned int i = 0; i < comandos.size(); i++)
+    {
+        glRasterPos3f(-0.3f, 0.2f - (i * 0.1f), 0.5f + proximidade_da_camera);
+        draw_text(comandos[i]);
+    }
+
     glutSwapBuffers();
 }
 
