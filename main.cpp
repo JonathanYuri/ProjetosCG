@@ -22,9 +22,9 @@ unsigned int delay = 1000 / 60;
 
 /* Menu */
 
-bool menu = true;
+bool menu = false;
 
-vector<string> comandos = {"{W, A, S, D}: rotacionar a camera",
+vector<string> comandos = { "{W, A, S, D}: rotacionar a camera",
                            "{Q, E}: rotacionar o eixo z da camera",
                            "SETAS: {UP, LEFT, DOWN, RIGHT}: movimentar a camera",
                            "{1, 2}: alterar o modo da camera",
@@ -48,7 +48,6 @@ GLfloat color_grid[][3] = { 118.0f / 255.0f, 180.0f / 255.0f, 53.0f / 255.0f,
 /* Medidas */
 
 tamanho tamanho_campo = { 2.4f, 1.8f, 0.1f };
-//tamanho tamanho_campo = { 1.2f, 0.9f, 0.1f };
 
 tamanho tamanho_barra = { 0.01f, 0.01f, 0.05f };
 
@@ -94,6 +93,91 @@ vector<GLfloat> faces_campo = {
     -tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2
 };
 
+/* Arquibancada */
+
+int niveis = 7;
+float espaco_arquibancada = 0.05;
+
+GLfloat larguraArquibancada = tamanho_campo.x / 4;
+GLfloat larguraDegrau = larguraArquibancada;
+//GLfloat larguraDegrau = 0.4; // <- ajustar para esse
+
+vector<GLfloat> vertices_arquibancada = {
+    //frente
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2,
+
+    //tras
+    -tamanho_campo.x / 2 - larguraArquibancada, -tamanho_campo.y / 2 - larguraDegrau, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2 - larguraArquibancada, tamanho_campo.y / 2 + larguraDegrau, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2 - larguraArquibancada, tamanho_campo.y / 2 + larguraDegrau, -tamanho_campo.z / 2,
+    -tamanho_campo.x / 2 - larguraArquibancada, -tamanho_campo.y / 2 - larguraDegrau, -tamanho_campo.z / 2,
+
+    // cima
+    -tamanho_campo.x / 2 - larguraArquibancada, tamanho_campo.y / 2 + larguraDegrau, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2 - larguraArquibancada, -tamanho_campo.y / 2 - larguraDegrau, tamanho_campo.z / 2,
+
+    //baixo
+    -tamanho_campo.x / 2 - larguraArquibancada, tamanho_campo.y / 2 + larguraDegrau, -tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    -tamanho_campo.x / 2 - larguraArquibancada, -tamanho_campo.y / 2 - larguraDegrau, -tamanho_campo.z / 2,
+
+    // esquerda
+    -tamanho_campo.x / 2 - larguraArquibancada, -tamanho_campo.y / 2 - larguraDegrau, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    -tamanho_campo.x / 2 - larguraArquibancada, -tamanho_campo.y / 2 - larguraDegrau, -tamanho_campo.z / 2,
+
+    // direita
+    -tamanho_campo.x / 2 - larguraArquibancada, tamanho_campo.y / 2 + larguraDegrau, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    -tamanho_campo.x / 2 - larguraArquibancada, tamanho_campo.y / 2 + larguraDegrau, -tamanho_campo.z / 2,
+};
+
+vector<GLfloat> vertices_arquibancada2 = {
+    //frente
+    tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2,
+
+    //tras
+    tamanho_campo.x / 2 + larguraDegrau, -tamanho_campo.y / 2 - larguraArquibancada, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2 - larguraDegrau, -tamanho_campo.y / 2 - larguraArquibancada, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2 - larguraDegrau, -tamanho_campo.y / 2 - larguraArquibancada, -tamanho_campo.z / 2,
+    tamanho_campo.x / 2 + larguraDegrau, -tamanho_campo.y / 2 - larguraArquibancada, -tamanho_campo.z / 2,
+
+    // cima
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2,
+    tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2,
+    tamanho_campo.x / 2 + larguraDegrau, -tamanho_campo.y / 2 - larguraArquibancada, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2 - larguraDegrau, -tamanho_campo.y / 2 - larguraArquibancada, tamanho_campo.z / 2,
+
+    //baixo
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    tamanho_campo.x / 2 + larguraDegrau, -tamanho_campo.y / 2 - larguraArquibancada, -tamanho_campo.z / 2,
+    -tamanho_campo.x / 2 - larguraDegrau, -tamanho_campo.y / 2 - larguraArquibancada, -tamanho_campo.z / 2,
+
+    // esquerda
+    tamanho_campo.x / 2 + larguraDegrau, -tamanho_campo.y / 2 - larguraArquibancada, tamanho_campo.z / 2,
+    tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2,
+    tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    tamanho_campo.x / 2 + larguraDegrau, -tamanho_campo.y / 2 - larguraArquibancada, -tamanho_campo.z / 2,
+
+    // direita
+    -tamanho_campo.x / 2 - larguraDegrau, -tamanho_campo.y / 2 - larguraArquibancada, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2,
+    -tamanho_campo.x / 2, -tamanho_campo.y / 2, -tamanho_campo.z / 2,
+    -tamanho_campo.x / 2 - larguraDegrau, -tamanho_campo.y / 2 - larguraArquibancada, -tamanho_campo.z / 2,
+};
+
 GLfloat lines[][4] = {
     //(xI, yI, xF, yF)
 
@@ -101,16 +185,16 @@ GLfloat lines[][4] = {
     .0f, tamanho_campo.y / 2.0f, .0f, -tamanho_campo.y / 2.0f,
 
     // linha esquerda
-    -tamanho_campo.x / 2, tamanho_campo.y / 2, -tamanho_campo.x / 2, -tamanho_campo.y / 2,
+    -tamanho_campo.x / 2.0f, tamanho_campo.y / 2.0f, -tamanho_campo.x / 2.0f, -tamanho_campo.y / 2.0f,
 
     // linha direita
-    tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.x / 2, -tamanho_campo.y / 2,
+    tamanho_campo.x / 2.0f, tamanho_campo.y / 2.0f, tamanho_campo.x / 2.0f, -tamanho_campo.y / 2.0f,
 
     // linha de cima
-    -tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.x / 2, tamanho_campo.y / 2,
+    -tamanho_campo.x / 2.0f, tamanho_campo.y / 2.0f, tamanho_campo.x / 2.0f, tamanho_campo.y / 2.0f,
 
     // linha de baixo
-    -tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.x / 2, -tamanho_campo.y / 2,
+    -tamanho_campo.x / 2.0f, -tamanho_campo.y / 2.0f, tamanho_campo.x / 2.0f, -tamanho_campo.y / 2.0f,
 
     // area direita
     0.435f * (tamanho_campo.x / 1.2f), 0.2016f * (tamanho_campo.y / 0.9f), 0.435f * (tamanho_campo.x / 1.2f), -0.2016f * (tamanho_campo.y / 0.9f),
@@ -122,7 +206,7 @@ GLfloat lines[][4] = {
     (tamanho_campo.x / 2) - 0.055f, -0.1384f, tamanho_campo.x / 2, -0.1384f,
 
     // area esquerda
-    -0.435f * (tamanho_campo.x / 1.2f), 0.2016f * (tamanho_campo.y / 0.9f), -0.435f * (tamanho_campo.x / 1.2f), -0.2016f * (tamanho_campo.y / 0.9f),
+    -lines[5][0], lines[5][1], -lines[5][2], lines[5][3],
     -0.435f * (tamanho_campo.x / 1.2f), 0.2016f * (tamanho_campo.y / 0.9f), -(tamanho_campo.x / 2), 0.2016f * (tamanho_campo.y / 0.9f),
     -0.435f * (tamanho_campo.x / 1.2f), -0.2016f * (tamanho_campo.y / 0.9f), -(tamanho_campo.x / 2), -0.2016f * (tamanho_campo.y / 0.9f),
 
@@ -138,14 +222,27 @@ int pontuacaoB = 0;
 
 string placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
 
+/* DIA */
+bool isDay = true;
+
+void setup_lightning()
+{
+    glEnable(GL_LIGHTING);
+    glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_LIGHT0);
+    //glEnable(GL_LIGHT1);
+}
+
 void init(void) {
     glClearColor(.0, .0, .0, 1.0);
     glEnable(GL_DEPTH_TEST);
+    setup_lightning();
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glFrustum(-1, 1, -1, 1, 2, 10);
     glMatrixMode(GL_MODELVIEW);
+    glEnable(GL_TEXTURE_2D);
 }
 
 void connect_dots(vector<pair<int, int>> points, float divisor)
@@ -298,9 +395,9 @@ void draw_lines()
     for (int i = 0; i < 17; i++)
     {
         points.push_back(TraceLine((int)(lines[i][0] * divisor),
-                                   (int)(lines[i][1] * divisor),
-                                   (int)(lines[i][2] * divisor),
-                                   (int)(lines[i][3] * divisor)));
+            (int)(lines[i][1] * divisor),
+            (int)(lines[i][2] * divisor),
+            (int)(lines[i][3] * divisor)));
     }
 
     glPushMatrix();
@@ -359,7 +456,7 @@ void draw_ball()
 
     glRotatef(bola->position_atual.x * bola->velocidadeRotacao, 0, 1, 0);
     glRotatef(bola->position_atual.y * bola->velocidadeRotacao, 1, 0, 0);
-    glutWireSphere(bola->raio, bola->slices, bola->stacks);
+    glutSolidSphere(bola->raio, bola->slices, bola->stacks);
 
     glPopMatrix();
     glPopMatrix();
@@ -387,15 +484,205 @@ void to_position_camera()
     if (camera->mode == '1')
     {
         gluLookAt(camera->position_atual.x, camera->position_atual.y, camera->position_atual.z,
-                  camera->targetAtual.x, camera->targetAtual.y, camera->targetAtual.z,
-                  0, 1, 0);
+            camera->targetAtual.x, camera->targetAtual.y, camera->targetAtual.z,
+            0, 1, 0);
     }
     else if (camera->mode == '2')
     {
         gluLookAt(camera->targetAtual.x + .0, camera->targetAtual.y - 3.0, camera->targetAtual.z + 3.5,
-                  camera->targetAtual.x, camera->targetAtual.y + 7.0, camera->targetAtual.z,
-                  0, 1, 0);
+            camera->targetAtual.x, camera->targetAtual.y + 7.0, camera->targetAtual.z,
+            0, 1, 0);
     }
+}
+
+void set_lights()
+{
+    //float light_diffuse[] = { 1.0f , 1.0f , 1.0f }; // luz branca
+    //float light_specular[] = { 1.0f , 0.0f , 0.0f }; // Luz branca
+
+    float light_ambient[] = { 0.01f, 0.01f, 0.01f };
+    float light_position[] = { 0.0f, 0.0f, 100.0f, 1.0f };
+
+    glPushMatrix();
+    float t = 1.0f * glutGet(GLUT_ELAPSED_TIME) / 24000.0f;
+
+    // a cada 24 segundos ta completando a volta
+    glRotatef(360 * t, 0.0f, 1.0f, 0.0f);
+    int r = int(t * 10) % 360;
+
+    if (r >= 90 && r <= 270)
+    {
+        if (isDay) isDay = !isDay;
+    }
+    else
+    {
+        if (!isDay) isDay = !isDay;
+    }
+
+    //cout << "Eh dia? " << isDay << endl;
+
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    //glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse);
+    //glLightfv(GL_LIGHT1, GL_SPECULAR, light_specular);
+    glPopMatrix();
+}
+
+void draw_layer(vector<float> vertices, float offset_x, float offset_y)
+{
+    for (unsigned int i = 0; i < vertices.size(); i += 12)
+    {
+        glBegin(GL_POLYGON);
+        if (i == 0) // para frente
+        {
+            glVertex3f(vertices[i] + offset_x, vertices[i + 1] - offset_y, vertices[i + 2]);
+            glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
+            glVertex3f(vertices[i + 6] + offset_x, vertices[i + 7] + offset_y, vertices[i + 8]);
+            glVertex3f(vertices[i + 9] + offset_x, vertices[i + 10] - offset_y, vertices[i + 11]);
+        }
+        else if (i == 24 || i == 36) // cima ou baixo
+        {
+            glVertex3f(vertices[i], vertices[i + 1], vertices[i + 2]);
+            glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
+            glVertex3f(vertices[i + 6] + offset_x, vertices[i + 7] - offset_y, vertices[i + 8]);
+            glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
+        }
+        else if (i == 48 || i == 60) // esquerda ou direita
+        {
+            glVertex3f(vertices[i], vertices[i + 1], vertices[i + 2]);
+            if (i == 48)
+            {
+                glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] - offset_y, vertices[i + 5]);
+                glVertex3f(vertices[i + 6] + offset_x, vertices[i + 7] - offset_y, vertices[i + 8]);
+            }
+            else
+            {
+                glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
+                glVertex3f(vertices[i + 6] + offset_x, vertices[i + 7] + offset_y, vertices[i + 8]);
+            }
+            glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
+        }
+        else if (i == 12) // tras
+        {
+            glVertex3f(vertices[i], vertices[i + 1], vertices[i + 2]);
+            glVertex3f(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
+
+            glVertex3f(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
+            glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
+        }
+        glEnd();
+    }
+}
+
+void draw_layer2(vector<float> vertices, GLfloat offset_x, float offset_y)
+{
+    for (unsigned int i = 0; i < vertices.size(); i += 12)
+    {
+        glBegin(GL_POLYGON);
+        if (i == 0) // para frente
+        {
+            //glColor3f(1.0, 1.0, .0);
+            glVertex3f(vertices[i] + offset_x, vertices[i + 1] + offset_y, vertices[i + 2]);
+            glVertex3f(vertices[i + 3] - offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
+            glVertex3f(vertices[i + 6] - offset_x, vertices[i + 7] + offset_y, vertices[i + 8]);
+            glVertex3f(vertices[i + 9] + offset_x, vertices[i + 10] + offset_y, vertices[i + 11]);
+        }
+        else if (i == 24 || i == 36) // cima ou baixo
+        {
+            //glColor3f(.0, 1.0, .0);
+            glVertex3f(vertices[i] - offset_x, vertices[i + 1] + offset_y, vertices[i + 2]);
+            glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
+            glVertex3f(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
+            glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
+        }
+        else if (i == 48 || i == 60) // esquerda ou direita
+        {
+            //glColor3f(.0, 1.0, 1.0);
+            glVertex3f(vertices[i], vertices[i + 1], vertices[i + 2]);
+            if (i == 48)
+            {
+                glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
+                glVertex3f(vertices[i + 6] + offset_x, vertices[i + 7] + offset_y, vertices[i + 8]);
+            }
+            else
+            {
+                //glColor3f(1.0, .0, 1.0);
+                glVertex3f(vertices[i + 3] - offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
+                glVertex3f(vertices[i + 6] - offset_x, vertices[i + 7] + offset_y, vertices[i + 8]);
+            }
+            glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
+        }
+        else if (i == 12) // tras
+        {
+            //glColor3f(1.0, 1.0, 1.0);
+            glVertex3f(vertices[i], vertices[i + 1], vertices[i + 2]);
+            glVertex3f(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
+            glVertex3f(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
+            glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
+        }
+        glEnd();
+    }
+}
+
+void draw_bench()
+{
+    int niveis = 7;
+    float espaco_arquibancada = 0.05;
+
+    float offset_x = .0f, offset_y = .0f;
+    glPushMatrix();
+    for (int i = 0; i < niveis; i++, offset_x += espaco_arquibancada, offset_y += (larguraDegrau * espaco_arquibancada) / larguraArquibancada)
+    {
+        if (i % 2 == 0)     glColor3f(.0, .0, .0);
+        else    glColor3f(1.0f, 1.0f, 1.0f);
+
+        if (i != 0)     glTranslatef(.0, .0, tamanho_campo.z);
+
+        draw_layer(vertices_arquibancada, -offset_x, offset_y);
+    }
+    glPopMatrix();
+}
+
+void draw_bench2()
+{
+    float offset_x = .0f, offset_y = .0f;
+    glPushMatrix();
+    for (int i = 0; i < niveis; i++, offset_y += espaco_arquibancada, offset_x += (larguraDegrau * espaco_arquibancada) / larguraArquibancada)
+    {
+        if (i % 2 == 0)     glColor3f(.0, .0, .0); //glColor3f(1.0, .0, .0);
+        else    glColor3f(1.0f, 1.0f, 1.0f); //glColor3f(.0f, .0f, 1.0f);
+
+        if (i != 0)     glTranslatef(.0, .0, tamanho_campo.z);
+
+        draw_layer2(vertices_arquibancada2, offset_x, -offset_y);
+    }
+    glPopMatrix();
+}
+
+void draw_stadium()
+{
+    glPushMatrix();
+    glTranslatef(0, 0, proximidade_da_camera);
+
+    // esquerda
+    draw_bench();
+
+    // direita
+    glPushMatrix();
+    glScalef(-1, 1, 1); // espelhar
+    draw_bench();
+    glPopMatrix();
+
+    // baixo
+    draw_bench2();
+
+    // cima
+    glPushMatrix();
+    glScalef(1, -1, 1); // espelhar
+    draw_bench2();
+    glPopMatrix();
+
+    glPopMatrix();
 }
 
 void displayField()
@@ -403,10 +690,13 @@ void displayField()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(69.0f / 255.0f, 39.0f / 255.0f, .0f / 255.0f, 1.0f); // marrom
 
+    set_lights();
+
     glLoadIdentity();
 
     to_position_camera();
 
+    draw_stadium();
     draw_field();
 
     draw_bars();
@@ -427,8 +717,8 @@ void displayMenu()
     glClearColor(.0, .0, .0, 1.0);
 
     gluLookAt(0.0f, 0.0f, 5.0f,
-              0.0f, 0.0f, 0.5f,
-              0, 1, 0);
+        0.0f, 0.0f, 0.5f,
+        0, 1, 0);
 
     glColor3f(1.0, 1.0, 1.0);
 
@@ -512,6 +802,7 @@ int main(int argc, char** argv)
     glutTimerFunc(0, timer, 0);
     glutKeyboardFunc(keyboard_handler);
     glutSpecialFunc(specialKeys_handler);
+
     glutMainLoop();
 
     return 0;
