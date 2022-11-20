@@ -17,7 +17,8 @@ struct tamanho {
     GLfloat z;
 };
 
-int grid_division_field = 13;
+int grid_division_x_field = 13;
+int grid_division_y_field = 7;
 unsigned int delay = 1000 / 60;
 
 /* Menu */
@@ -413,36 +414,33 @@ void draw_lines()
 
 void draw_field()
 {
-    float division_length = tamanho_campo.x / grid_division_field;
+    float division_length = tamanho_campo.x / grid_division_x_field;
+    float division_height = tamanho_campo.y / grid_division_y_field;
 
     glPushMatrix();
     glTranslatef(.0, .0, proximidade_da_camera);
 
-    for (int i = 0; i < grid_division_field; i++)
+    glColor3f(0, 1.0, 0);
+    glTranslatef(-tamanho_campo.x / 2, 0, 0);
+    glTranslatef(division_length / 2, 0, 0);
+    for (int i = 0; i < grid_division_x_field; i++)
     {
+        if (i != 0) glTranslatef(division_length, 0, 0);
         glColor3f(color_grid[(i % 2)][0], color_grid[(i % 2)][1], color_grid[(i % 2)][2]);
-
-        //frente
-        glBegin(GL_POLYGON);
-        glVertex3f((division_length * i) - tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
-        glVertex3f((division_length * (i + 1)) - tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
-
-        glVertex3f((division_length * (i + 1)) - tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
-        glVertex3f((division_length * i) - tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
-        glEnd();
+        
+        glPushMatrix();
+        glTranslatef(0, tamanho_campo.y / 2, 0);
+        glTranslatef(0, -division_height / 2, 0);
+        for (int j = 0; j < grid_division_y_field; j++)
+        {
+            if (j != 0) glTranslatef(0, -division_height, 0);
+            glPushMatrix();
+            glScalef(division_length, division_height, tamanho_campo.z);
+            glutSolidCube(1.0f);
+            glPopMatrix();
+        }
+        glPopMatrix();
     }
-
-    for (unsigned int i = 0; i < faces_campo.size(); i += 12)
-    {
-        glBegin(GL_POLYGON);
-        glVertex3f(faces_campo[i], faces_campo[i + 1], faces_campo[i + 2]);
-        glVertex3f(faces_campo[i + 3], faces_campo[i + 4], faces_campo[i + 5]);
-
-        glVertex3f(faces_campo[i + 6], faces_campo[i + 7], faces_campo[i + 8]);
-        glVertex3f(faces_campo[i + 9], faces_campo[i + 10], faces_campo[i + 11]);
-        glEnd();
-    }
-
     glPopMatrix();
 }
 
