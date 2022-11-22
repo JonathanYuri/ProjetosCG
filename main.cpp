@@ -472,7 +472,7 @@ void draw_field()
     {
         if (i != 0) glTranslatef(division_length, 0, 0);
         glColor3f(color_grid[(i % 2)][0], color_grid[(i % 2)][1], color_grid[(i % 2)][2]);
-        
+
         glPushMatrix();
         glTranslatef(0, tamanho_campo.y / 2, 0);
         glTranslatef(0, -division_height / 2, 0);
@@ -550,7 +550,7 @@ void set_lights()
     float light_specular[] = { 1.0f , 1.0f , 1.0f, 1.0f };
 
     float light_ambient[] = { 0.1f, 0.1f, 0.1f, 1.0f};
-    float light_position[] = { 0.0f, 0.0f, 100.0f, 1.0f };
+    float light_position[] = { 100.0f, 0.0f, 0.0f, 1.0f };
 
     //float especularidade[] = { 0.0f, 0.0f, 0.0f, 1.0f };
     //int especMaterial = 60;
@@ -571,7 +571,7 @@ void set_lights()
     glRotatef(360 * t, 0.0f, 1.0f, 0.0f);
     int r = int(360 * t) % 360;
 
-    if (r >= 90 && r <= 270)
+    if (r >= 180 && r <= 360)
     {
         if (isDay) isDay = !isDay;
     }
@@ -580,7 +580,7 @@ void set_lights()
         if (!isDay) isDay = !isDay;
     }
 
-    cout << "Eh dia? " << isDay << " t: " << t << " r: " << r << endl;
+    //cout << "Eh dia? " << isDay << " t: " << t << " r: " << r << endl;
 
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
@@ -594,92 +594,168 @@ void draw_layer(vector<float> vertices, float offset_x, float offset_y)
         glBegin(GL_POLYGON);
         if (i == 0) // para frente
         {
+            glNormal3f(1, 0, 0);
             glColor3f(1.0f, 1.0f, .0f);
             glVertex3f(vertices[i] + offset_x, vertices[i + 1] - offset_y, vertices[i + 2]);
+
+            glNormal3f(1, 0, 0);
             glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
+
+            glNormal3f(1, 0, 0);
             glVertex3f(vertices[i + 6] + offset_x, vertices[i + 7] + offset_y, vertices[i + 8]);
+
+            glNormal3f(1, 0, 0);
             glVertex3f(vertices[i + 9] + offset_x, vertices[i + 10] - offset_y, vertices[i + 11]);
         }
         else if (i == 24 || i == 36) // cima ou baixo
         {
+            if (i == 24)    glNormal3f(0, 0, 1);
+            else    glNormal3f(0, 0, -1);
+
             glColor3f(.0f, .0f, 1.0f);
             glVertex3f(vertices[i], vertices[i + 1], vertices[i + 2]);
+
+            if (i == 24)    glNormal3f(0, 0, 1);
+            else    glNormal3f(0, 0, -1);
             glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
+
+            if (i == 24)    glNormal3f(0, 0, 1);
+            else    glNormal3f(0, 0, -1);
             glVertex3f(vertices[i + 6] + offset_x, vertices[i + 7] - offset_y, vertices[i + 8]);
+
+            if (i == 24)    glNormal3f(0, 0, 1);
+            else    glNormal3f(0, 0, -1);
             glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
         }
         else if (i == 48 || i == 60) // esquerda ou direita
         {
+            if (i == 48)    glNormal3f(0, 1, 0);
+            else    glNormal3f(0, -1, 0);
+
             glVertex3f(vertices[i], vertices[i + 1], vertices[i + 2]);
             if (i == 48)
             {
+                glNormal3f(0, 1, 0);
                 glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] - offset_y, vertices[i + 5]);
+
+                glNormal3f(0, 1, 0);
                 glVertex3f(vertices[i + 6] + offset_x, vertices[i + 7] - offset_y, vertices[i + 8]);
             }
             else
             {
+                glNormal3f(0, -1, 0);
                 glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
+
+                glNormal3f(0, -1, 0);
                 glVertex3f(vertices[i + 6] + offset_x, vertices[i + 7] + offset_y, vertices[i + 8]);
             }
+
+            if (i == 48)    glNormal3f(0, 1, 0);
+            else    glNormal3f(0, -1, 0);
             glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
         }
         else if (i == 12) // tras
         {
+            glNormal3f(-1, 0, 0);
             glVertex3f(vertices[i], vertices[i + 1], vertices[i + 2]);
+
+            glNormal3f(-1, 0, 0);
             glVertex3f(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
 
+            glNormal3f(-1, 0, 0);
             glVertex3f(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
+
+            glNormal3f(-1, 0, 0);
             glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
         }
         glEnd();
     }
 }
 
-void draw_layer2(vector<float> vertices, GLfloat offset_x, float offset_y)
+void draw_layer2(vector<float> vertices, float offset_x, float offset_y)
 {
     for (unsigned int i = 0; i < vertices.size(); i += 12)
     {
         glBegin(GL_POLYGON);
         if (i == 0) // para frente
         {
-            // glNormal3f()
+            glNormal3f(0, 1, 0);
             glColor3f(1.0f, 1.0f, .0f);
             glVertex3f(vertices[i] + offset_x, vertices[i + 1] + offset_y, vertices[i + 2]);
+
+            glNormal3f(0, 1, 0);
             glVertex3f(vertices[i + 3] - offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
+
+            glNormal3f(0, 1, 0);
             glVertex3f(vertices[i + 6] - offset_x, vertices[i + 7] + offset_y, vertices[i + 8]);
+
+            glNormal3f(0, 1, 0);
             glVertex3f(vertices[i + 9] + offset_x, vertices[i + 10] + offset_y, vertices[i + 11]);
         }
         else if (i == 24 || i == 36) // cima ou baixo
         {
+            if (i == 24)    glNormal3f(0, 0, 1);
+            else    glNormal3f(0, 0, -1);
+
             glColor3f(.0f, .0f, 1.0f);
             glVertex3f(vertices[i] - offset_x, vertices[i + 1] + offset_y, vertices[i + 2]);
+
+            if (i == 24)    glNormal3f(0, 0, 1);
+            else    glNormal3f(0, 0, -1);
+
             glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
+
+            if (i == 24)    glNormal3f(0, 0, 1);
+            else    glNormal3f(0, 0, -1);
             glVertex3f(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
+
+            if (i == 24)    glNormal3f(0, 0, 1);
+            else    glNormal3f(0, 0, -1);
             glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
         }
         else if (i == 48 || i == 60) // esquerda ou direita
         {
+            if (i == 48)    glNormal3f(1, 1, 0);
+            else    glNormal3f(-1, 1, 0);
+
             //glColor3f(.0, 1.0, 1.0);
             glVertex3f(vertices[i], vertices[i + 1], vertices[i + 2]);
             if (i == 48)
             {
+                glNormal3f(1, 1, 0);
                 glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
+
+                glNormal3f(1, 1, 0);
                 glVertex3f(vertices[i + 6] + offset_x, vertices[i + 7] + offset_y, vertices[i + 8]);
             }
             else
             {
                 //glColor3f(1.0, .0, 1.0);
+                glNormal3f(-1, 1, 0);
                 glVertex3f(vertices[i + 3] - offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
+
+                glNormal3f(-1, 1, 0);
                 glVertex3f(vertices[i + 6] - offset_x, vertices[i + 7] + offset_y, vertices[i + 8]);
             }
+
+            if (i == 48)    glNormal3f(1, 1, 0);
+            else    glNormal3f(-1, 1, 0);
             glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
         }
         else if (i == 12) // tras
         {
+            glNormal3f(0, -1, 0);
             //glColor3f(1.0, 1.0, 1.0);
+
             glVertex3f(vertices[i], vertices[i + 1], vertices[i + 2]);
+
+            glNormal3f(0, -1, 0);
             glVertex3f(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
+
+            glNormal3f(0, -1, 0);
             glVertex3f(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
+
+            glNormal3f(0, -1, 0);
             glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
         }
         glEnd();
@@ -734,21 +810,27 @@ void draw_stadium()
     glPopMatrix();
 }
 
+void set_light_stadium()
+{
+    float light_diffuse[] = { 0.5f , 0.5f , 0.5f, 1.0f }; // luz branca
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+}
+
 void displayField()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(69.0f / 255.0f, 39.0f / 255.0f, .0f / 255.0f, 1.0f); // marrom
 
-    set_lights();
-
     glLoadIdentity();
 
     to_position_camera();
 
-    //glColor3f(1.0f, 0.0f, 0.0f);
-    //glutSolidCube(1.5f);
+    set_light_stadium();
 
     draw_stadium();
+
+    set_lights();
+
     draw_field();
 
     draw_bars();
