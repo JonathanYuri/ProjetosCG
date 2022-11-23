@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Bola.h"
 #include "Bresenham.h"
+#include "stb_image.h"
 
 using namespace std;
 
@@ -17,6 +18,7 @@ struct tamanho {
     GLfloat z;
 };
 
+int grid_division_field = 13;
 int grid_division_x_field = 13;
 int grid_division_y_field = 7;
 unsigned int delay = 1000 / 60;
@@ -227,6 +229,50 @@ string placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
 /* DIA */
 bool isDay = true;
 
+GLuint texID[2];
+
+void carregaTextura(string filePath, GLuint tex_id)
+{
+    unsigned char* imgData;
+    int largura, altura, canais;
+    stbi_set_flip_vertically_on_load(true);
+    imgData = stbi_load(filePath.c_str(), &largura, &altura, &canais, 4);
+
+    if(imgData)
+    {
+        glBindTexture(GL_TEXTURE_2D, tex_id);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, largura, altura, 0, GL_RGBA, GL_UNSIGNED_BYTE, imgData);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        stbi_image_free(imgData);
+    }
+    else
+    {
+        cout << "Erro: N foi possivel carregar a textura" << filePath.c_str() << endl;
+    }
+    
+}
+
+void draw_quadrado(GLuint texid)
+{
+    glColor3f(1.0, 1.0, .0);
+    glBindTexture(GL_TEXTURE_2D, texid);
+    glBegin(GL_QUADS);
+    glTexCoord2f(-1.0, 0.0);
+    glVertex3f(-3.0, -3.0, 0.0);
+    glTexCoord2f(2.0, 0.0);
+    glVertex3f(3.0, -3.0, 0.0);
+    glTexCoord2f(2.0, 2.0);
+    glVertex3f(3.0, 3.0, 0.0);
+    glTexCoord2f(-1.0, 2.0);
+    glVertex3f(-3.0, 3.0, 0.0);
+    glEnd();
+}
+
 void setup_lightning()
 {
     glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
@@ -238,13 +284,18 @@ void init(void) {
     glClearColor(.0, .0, .0, 1.0);
     glEnable(GL_DEPTH_TEST);
 
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glGenTextures(3, texID);
+    carregaTextura("grama.png", texID[0]);
+    carregaTextura("banco.png", texID[1]);
+
     setup_lightning();
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glFrustum(-1, 1, -1, 1, 2, 10);
     glMatrixMode(GL_MODELVIEW);
-    glEnable(GL_TEXTURE_2D);
+    
 }
 
 void connect_dots(vector<pair<int, int>> points, float divisor)
@@ -457,8 +508,10 @@ void draw_outlines()
     glPopMatrix();
 }
 
-void draw_field()
+void draw_field(GLuint texid)
 {
+    glBindTexture(GL_TEXTURE_2D, texid);
+    glNewList(texid, GL_COMPILE);
     float division_length = tamanho_campo.x / grid_division_x_field;
     float division_height = tamanho_campo.y / grid_division_y_field;
 
@@ -487,8 +540,53 @@ void draw_field()
         glPopMatrix();
     }
     glPopMatrix();
+    glEndList();
 
     draw_outlines();
+}
+
+void draw_field2(GLuint texid)
+{
+    glBindTexture(GL_TEXTURE_2D, texid);
+    float division_length = tamanho_campo.x / grid_division_field;
+
+    glPushMatrix();
+    glTranslatef(.0, .0, proximidade_da_camera);
+
+    for (int i = 0; i < grid_division_field; i++)
+    {
+        glColor3f(color_grid[(i % 2)][0], color_grid[(i % 2)][1], color_grid[(i % 2)][2]);
+
+        //frente
+        glBegin(GL_POLYGON);
+        glTexCoord2f(0.0, 5.0);
+        glVertex3f((division_length * i) - tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
+        glTexCoord2f(5.0, 5.0);
+        glVertex3f((division_length * (i + 1)) - tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
+
+        glTexCoord2f(5.0, 0.0);
+        glVertex3f((division_length * (i + 1)) - tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
+        glTexCoord2f(0.0, 5.0);
+        glVertex3f((division_length * i) - tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
+        glEnd();
+    }
+
+    for (unsigned int i = 0; i < faces_campo.size(); i += 12)
+    {
+        glBegin(GL_POLYGON);
+        //glTexCoord2f(0.0, 0.0);
+        glVertex3f(faces_campo[i], faces_campo[i + 1], faces_campo[i + 2]);
+        //glTexCoord2f(1.0, 0.0);
+        glVertex3f(faces_campo[i + 3], faces_campo[i + 4], faces_campo[i + 5]);
+
+        //glTexCoord2f(1.0, 1.0);
+        glVertex3f(faces_campo[i + 6], faces_campo[i + 7], faces_campo[i + 8]);
+        //glTexCoord2f(0.0, 1.0);
+        glVertex3f(faces_campo[i + 9], faces_campo[i + 10], faces_campo[i + 11]);
+        glEnd();
+    }
+
+    glPopMatrix();
 }
 
 void draw_ball()
@@ -587,8 +685,9 @@ void set_lights()
     glPopMatrix();
 }
 
-void draw_layer(vector<float> vertices, float offset_x, float offset_y)
+void draw_layer(vector<float> vertices, float offset_x, float offset_y, GLuint texid)
 {
+    glBindTexture(GL_TEXTURE_2D, texid);
     for (unsigned int i = 0; i < vertices.size(); i += 12)
     {
         glBegin(GL_POLYGON);
@@ -596,15 +695,22 @@ void draw_layer(vector<float> vertices, float offset_x, float offset_y)
         {
             glNormal3f(1, 0, 0);
             glColor3f(1.0f, 1.0f, .0f);
+            glTexCoord2f(0.0, 0.0);
+            
             glVertex3f(vertices[i] + offset_x, vertices[i + 1] - offset_y, vertices[i + 2]);
 
             glNormal3f(1, 0, 0);
+            glTexCoord2f(1.0, 0.0);
+            
             glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
 
             glNormal3f(1, 0, 0);
+            glTexCoord2f(1.0, 1.0);
+            
             glVertex3f(vertices[i + 6] + offset_x, vertices[i + 7] + offset_y, vertices[i + 8]);
 
             glNormal3f(1, 0, 0);
+            glTexCoord2f(0.0, 1.0);
             glVertex3f(vertices[i + 9] + offset_x, vertices[i + 10] - offset_y, vertices[i + 11]);
         }
         else if (i == 24 || i == 36) // cima ou baixo
@@ -672,24 +778,31 @@ void draw_layer(vector<float> vertices, float offset_x, float offset_y)
     }
 }
 
-void draw_layer2(vector<float> vertices, float offset_x, float offset_y)
+void draw_layer2(vector<float> vertices, float offset_x, float offset_y, GLuint texid)
 {
+    glBindTexture(GL_TEXTURE_2D, texid);
+
     for (unsigned int i = 0; i < vertices.size(); i += 12)
     {
         glBegin(GL_POLYGON);
         if (i == 0) // para frente
         {
-            glNormal3f(0, 1, 0);
             glColor3f(1.0f, 1.0f, .0f);
+
+            glNormal3f(0, 1, 0);
+            glTexCoord2f(0.0, 0.0);
             glVertex3f(vertices[i] + offset_x, vertices[i + 1] + offset_y, vertices[i + 2]);
 
             glNormal3f(0, 1, 0);
+            glTexCoord2f(1.0, 0.0);
             glVertex3f(vertices[i + 3] - offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
 
             glNormal3f(0, 1, 0);
+            glTexCoord2f(1.0, 1.0);
             glVertex3f(vertices[i + 6] - offset_x, vertices[i + 7] + offset_y, vertices[i + 8]);
 
             glNormal3f(0, 1, 0);
+            glTexCoord2f(0.0, 1.0);
             glVertex3f(vertices[i + 9] + offset_x, vertices[i + 10] + offset_y, vertices[i + 11]);
         }
         else if (i == 24 || i == 36) // cima ou baixo
@@ -698,19 +811,24 @@ void draw_layer2(vector<float> vertices, float offset_x, float offset_y)
             else    glNormal3f(0, 0, -1);
 
             glColor3f(.0f, .0f, 1.0f);
+            glTexCoord2f(0.0, 0.0);
             glVertex3f(vertices[i] - offset_x, vertices[i + 1] + offset_y, vertices[i + 2]);
 
             if (i == 24)    glNormal3f(0, 0, 1);
             else    glNormal3f(0, 0, -1);
-
+            glTexCoord2f(1.0, 0.0);
             glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
 
             if (i == 24)    glNormal3f(0, 0, 1);
             else    glNormal3f(0, 0, -1);
+
+            glTexCoord2f(1.0, 1.0);
             glVertex3f(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
 
             if (i == 24)    glNormal3f(0, 0, 1);
             else    glNormal3f(0, 0, -1);
+
+            glTexCoord2f(0.0, 1.0);
             glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
         }
         else if (i == 48 || i == 60) // esquerda ou direita
@@ -778,8 +896,18 @@ void draw_bench(bool cima)
 
         if (i != 0)     glTranslatef(.0, .0, tamanho_campo.z);
 
-        if (!cima)   draw_layer(vertices_arquibancada, -offset_x, offset_y);
-        else    draw_layer2(vertices_arquibancada2, offset_y, -offset_x);
+        if (!cima)
+        {
+            glEnable(GL_TEXTURE_2D);
+            draw_layer(vertices_arquibancada, -offset_x, offset_y, texID[1]);
+            glDisable(GL_TEXTURE_2D);
+        }
+        else
+        {
+            glEnable(GL_TEXTURE_2D);
+            draw_layer2(vertices_arquibancada2, offset_y, -offset_x, texID[1]);
+            glDisable(GL_TEXTURE_2D);
+        }
     }
     glPopMatrix();
 }
@@ -827,11 +955,21 @@ void displayField()
 
     set_light_stadium();
 
-    draw_stadium();
+    /*glEnable(GL_TEXTURE_2D);
+    draw_quadrado(texID[0]);
+    glDisable(GL_TEXTURE_2D);*/
+
+    //draw_stadium();
 
     set_lights();
+    
+    /*glEnable(GL_TEXTURE_2D);
+    draw_field(texID[0]);
+    glDisable(GL_TEXTURE_2D);*/
 
-    draw_field();
+    //glEnable(GL_TEXTURE_2D);
+    draw_field2(texID[0]);
+    //glDisable(GL_TEXTURE_2D);
 
     draw_bars();
     draw_ball();
@@ -939,5 +1077,6 @@ int main(int argc, char** argv)
 
     glutMainLoop();
 
+    glDeleteTextures(1, texID);
     return 0;
 }
