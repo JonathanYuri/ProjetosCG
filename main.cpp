@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Bola.h"
 #include "Bresenham.h"
+#include "stb_image.h"
 
 using namespace std;
 
@@ -17,6 +18,7 @@ struct tamanho {
     GLfloat z;
 };
 
+int grid_division_field = 13;
 int grid_division_x_field = 13;
 int grid_division_y_field = 7;
 unsigned int delay = 1000 / 60;
@@ -227,6 +229,50 @@ string placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
 /* DIA */
 bool isDay = true;
 
+GLuint texID[3];
+
+void carregaTextura(string filePath, GLuint tex_id)
+{
+    unsigned char* imgData;
+    int largura, altura, canais;
+    stbi_set_flip_vertically_on_load(true);
+    imgData = stbi_load(filePath.c_str(), &largura, &altura, &canais, 4);
+
+    if(imgData)
+    {
+        glBindTexture(GL_TEXTURE_2D, tex_id);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, largura, altura, 0, GL_RGBA, GL_UNSIGNED_BYTE, imgData);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        stbi_image_free(imgData);
+    }
+    else
+    {
+        cout << "Erro: N foi possivel carregar a textura" << filePath.c_str() << endl;
+    }
+    
+}
+
+void draw_quadrado(GLuint texid)
+{
+    glColor3f(1.0, 1.0, .0);
+    glBindTexture(GL_TEXTURE_2D, texid);
+    glBegin(GL_QUADS);
+    glTexCoord2f(-1.0, 0.0);
+    glVertex3f(-3.0, -3.0, 0.0);
+    glTexCoord2f(2.0, 0.0);
+    glVertex3f(3.0, -3.0, 0.0);
+    glTexCoord2f(2.0, 2.0);
+    glVertex3f(3.0, 3.0, 0.0);
+    glTexCoord2f(-1.0, 2.0);
+    glVertex3f(-3.0, 3.0, 0.0);
+    glEnd();
+}
+
 void setup_lightning()
 {
     glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
@@ -238,13 +284,19 @@ void init(void) {
     glClearColor(.0, .0, .0, 1.0);
     glEnable(GL_DEPTH_TEST);
 
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glGenTextures(3, texID);
+    carregaTextura("./Texturas/grama_escura.png", texID[0]);
+    carregaTextura("./Texturas/1.png", texID[1]);
+    carregaTextura("./Texturas/grama_clara.png", texID[2]);
+
     setup_lightning();
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glFrustum(-1, 1, -1, 1, 2, 10);
     glMatrixMode(GL_MODELVIEW);
-    glEnable(GL_TEXTURE_2D);
+    
 }
 
 void connect_dots(vector<pair<int, int>> points, float divisor)
@@ -413,82 +465,106 @@ void draw_lines()
     glPopMatrix();
 }
 
-void draw_outline_lateral()
+void draw_outlines(GLuint texid)
 {
-    glPushMatrix();
-    glTranslatef(-tamanho_campo.x / 2 - espacamento_lateral / 2, 0, 0);
-
-    glScalef(espacamento_lateral, tamanho_campo.y + espacamento_lateral * 2, tamanho_campo.z);
-    glutSolidCube(1.0f);
-    glPopMatrix();
-}
-
-void draw_outline_superior()
-{
-    glPushMatrix();
-    glTranslatef(0, -tamanho_campo.y / 2 - espacamento_lateral / 2, 0);
-
-    glScalef(tamanho_campo.x, espacamento_lateral, tamanho_campo.z);
-    glutSolidCube(1.0f);
-    glPopMatrix();
-}
-
-void draw_outlines()
-{
-    glPushMatrix();
-
+    glBindTexture(GL_TEXTURE_2D, texid);
     glColor3f(color_grid[1][0], color_grid[1][1], color_grid[1][2]);
+    glBegin(GL_POLYGON);
+    glTexCoord2f(0.0, 0.0);
+    glVertex3f(-(tamanho_campo.x / 2) - espacamento_lateral, tamanho_campo.y / 2 + espacamento_lateral, tamanho_campo.z / 2);
+    glTexCoord2f(1.0, 0.0);
+    glVertex3f(-(tamanho_campo.x / 2), tamanho_campo.y / 2 + espacamento_lateral, tamanho_campo.z / 2);
+    glTexCoord2f(1.0, 5.0);
+    glVertex3f(-(tamanho_campo.x / 2), -(tamanho_campo.y / 2) - espacamento_lateral, tamanho_campo.z / 2);
+    glTexCoord2f(0.0, 5.0);
+    glVertex3f(-(tamanho_campo.x / 2) - espacamento_lateral, -(tamanho_campo.y / 2) - espacamento_lateral, tamanho_campo.z / 2);
+    glEnd();
 
-    glTranslatef(.0, .0, proximidade_da_camera);
+    glBegin(GL_POLYGON);
+    glTexCoord2f(0.0, 0.0);
+    glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2 + espacamento_lateral, tamanho_campo.z / 2);
+    glTexCoord2f(1.0, 0.0);
+    glVertex3f(tamanho_campo.x / 2 + espacamento_lateral, tamanho_campo.y / 2 + espacamento_lateral, tamanho_campo.z / 2);
+    glTexCoord2f(1.0, 5.0);
+    glVertex3f(tamanho_campo.x / 2 + espacamento_lateral, -(tamanho_campo.y / 2) - espacamento_lateral, tamanho_campo.z / 2);
+    glTexCoord2f(0.0, 5.0);
+    glVertex3f(tamanho_campo.x / 2, -(tamanho_campo.y / 2) - espacamento_lateral, tamanho_campo.z / 2);
+    glEnd();
 
-    draw_outline_lateral();
-    
-    glPushMatrix();
-    glScalef(-1, 1, 1); // espelhar
-    draw_outline_lateral();
-    glPopMatrix();
+    glBegin(GL_POLYGON);
+    glTexCoord2f(0.0, 0.0);
+    glVertex3f(-tamanho_campo.x / 2, tamanho_campo.y / 2 + espacamento_lateral, tamanho_campo.z / 2);
+    glTexCoord2f(5.0, 0.0);
+    glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2 + espacamento_lateral, tamanho_campo.z / 2);
+    glTexCoord2f(5.0, 1.0);
+    glVertex3f(tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
+    glTexCoord2f(0.0, 1.0);
+    glVertex3f(-tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
+    glEnd();
 
-    draw_outline_superior();
-
-    glScalef(1, -1, 1); // espelhar
-    draw_outline_superior();
-    glPopMatrix();
-
-    glPopMatrix();
+    glBegin(GL_POLYGON);
+    glTexCoord2f(0.0, 0.0);
+    glVertex3f(-tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
+    glTexCoord2f(5.0, 0.0);
+    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
+    glTexCoord2f(5.0, 1.0);
+    glVertex3f(tamanho_campo.x / 2, -tamanho_campo.y / 2 - espacamento_lateral, tamanho_campo.z / 2);
+    glTexCoord2f(0.0, 1.0);
+    glVertex3f(-tamanho_campo.x / 2, -tamanho_campo.y / 2 - espacamento_lateral, tamanho_campo.z / 2);
+    glEnd();
 }
 
-void draw_field()
+void draw_field2(GLuint texid, GLuint texMaisClara)
 {
-    float division_length = tamanho_campo.x / grid_division_x_field;
-    float division_height = tamanho_campo.y / grid_division_y_field;
+    float division_length = tamanho_campo.x / grid_division_field;
 
     glPushMatrix();
     glTranslatef(.0, .0, proximidade_da_camera);
 
-    glColor3f(0, 1.0, 0);
-    glTranslatef(-tamanho_campo.x / 2, 0, 0);
-    glTranslatef(division_length / 2, 0, 0);
-    for (int i = 0; i < grid_division_x_field; i++)
+    for (int i = 0; i < grid_division_field; i++)
     {
-        if (i != 0) glTranslatef(division_length, 0, 0);
+        if (i % 2 == 0)
+        {
+            glBindTexture(GL_TEXTURE_2D, texid);
+        }
+        else
+        {
+            glBindTexture(GL_TEXTURE_2D, texMaisClara);
+        }
+
         glColor3f(color_grid[(i % 2)][0], color_grid[(i % 2)][1], color_grid[(i % 2)][2]);
 
-        glPushMatrix();
-        glTranslatef(0, tamanho_campo.y / 2, 0);
-        glTranslatef(0, -division_height / 2, 0);
-        for (int j = 0; j < grid_division_y_field; j++)
-        {
-            if (j != 0) glTranslatef(0, -division_height, 0);
-            glPushMatrix();
-            glScalef(division_length, division_height, tamanho_campo.z);
-            glutSolidCube(1.0f);
-            glPopMatrix();
-        }
-        glPopMatrix();
-    }
-    glPopMatrix();
+        //frente
+        glBegin(GL_POLYGON);
+        glTexCoord2f(0.0, 0.0);
+        glVertex3f((division_length * i) - tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
+        glTexCoord2f(1.0, 0.0);
+        glVertex3f((division_length * (i + 1)) - tamanho_campo.x / 2, tamanho_campo.y / 2, tamanho_campo.z / 2);
 
-    draw_outlines();
+        glTexCoord2f(1.0, 5.0);
+        glVertex3f((division_length * (i + 1)) - tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
+        glTexCoord2f(0.0, 5.0);
+        glVertex3f((division_length * i) - tamanho_campo.x / 2, -tamanho_campo.y / 2, tamanho_campo.z / 2);
+        glEnd();
+    }
+
+    for (unsigned int i = 0; i < faces_campo.size(); i += 12)
+    {
+        glBegin(GL_POLYGON);
+        glTexCoord2f(0.0, 0.0);
+        glVertex3f(faces_campo[i], faces_campo[i + 1], faces_campo[i + 2]);
+        glTexCoord2f(1.0, 0.0);
+        glVertex3f(faces_campo[i + 3], faces_campo[i + 4], faces_campo[i + 5]);
+
+        glTexCoord2f(1.0, 1.0);
+        glVertex3f(faces_campo[i + 6], faces_campo[i + 7], faces_campo[i + 8]);
+        glTexCoord2f(0.0, 1.0);
+        glVertex3f(faces_campo[i + 9], faces_campo[i + 10], faces_campo[i + 11]);
+        glEnd();
+    }
+
+    draw_outlines(texid);
+    glPopMatrix();
 }
 
 void draw_ball()
@@ -540,16 +616,22 @@ void to_position_camera()
     }
 }
 
+void set_light2()
+{
+    float light_diffuse[] = { 0.1f , 0.1f , 0.1f, 1.0f }; // luz branca
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+}
+
 void set_lights()
 {
     glEnable(GL_LIGHTING);
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_LIGHT0);
 
-    float light_diffuse[] = { 0.1f , 0.1f , 0.1f, 1.0f}; // luz branca
+    float light_diffuse[] = { 0.5f , 0.5f , 0.5f, 1.0f }; // luz branca
     float light_specular[] = { 1.0f , 1.0f , 1.0f, 1.0f };
 
-    float light_ambient[] = { 0.1f, 0.1f, 0.1f, 1.0f};
+    float light_ambient[] = { 0.1f, 0.1f, 0.1f, 1.0f };
     float light_position[] = { 100.0f, 0.0f, 0.0f, 1.0f };
 
     //float especularidade[] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -580,15 +662,16 @@ void set_lights()
         if (!isDay) isDay = !isDay;
     }
 
-    //cout << "Eh dia? " << isDay << " t: " << t << " r: " << r << endl;
+    cout << "Eh dia? " << isDay << " t: " << t << " r: " << r << endl;
 
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
     glPopMatrix();
 }
 
-void draw_layer(vector<float> vertices, float offset_x, float offset_y)
+void draw_layer(vector<float> vertices, float offset_x, float offset_y, GLuint texid)
 {
+    glBindTexture(GL_TEXTURE_2D, texid);
     for (unsigned int i = 0; i < vertices.size(); i += 12)
     {
         glBegin(GL_POLYGON);
@@ -596,15 +679,22 @@ void draw_layer(vector<float> vertices, float offset_x, float offset_y)
         {
             glNormal3f(1, 0, 0);
             glColor3f(1.0f, 1.0f, .0f);
+            glTexCoord2f(0.0, 0.0);
+            
             glVertex3f(vertices[i] + offset_x, vertices[i + 1] - offset_y, vertices[i + 2]);
 
             glNormal3f(1, 0, 0);
+            glTexCoord2f(1.0, 0.0);
+            
             glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
 
             glNormal3f(1, 0, 0);
+            glTexCoord2f(1.0, 1.0);
+            
             glVertex3f(vertices[i + 6] + offset_x, vertices[i + 7] + offset_y, vertices[i + 8]);
 
             glNormal3f(1, 0, 0);
+            glTexCoord2f(0.0, 1.0);
             glVertex3f(vertices[i + 9] + offset_x, vertices[i + 10] - offset_y, vertices[i + 11]);
         }
         else if (i == 24 || i == 36) // cima ou baixo
@@ -613,18 +703,22 @@ void draw_layer(vector<float> vertices, float offset_x, float offset_y)
             else    glNormal3f(0, 0, -1);
 
             glColor3f(.0f, .0f, 1.0f);
+            glTexCoord2f(0.0, 0.0);
             glVertex3f(vertices[i], vertices[i + 1], vertices[i + 2]);
 
             if (i == 24)    glNormal3f(0, 0, 1);
             else    glNormal3f(0, 0, -1);
+            glTexCoord2f(1.0, 0.0);
             glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
 
             if (i == 24)    glNormal3f(0, 0, 1);
             else    glNormal3f(0, 0, -1);
+            glTexCoord2f(1.0, 1.0);
             glVertex3f(vertices[i + 6] + offset_x, vertices[i + 7] - offset_y, vertices[i + 8]);
 
             if (i == 24)    glNormal3f(0, 0, 1);
             else    glNormal3f(0, 0, -1);
+            glTexCoord2f(0.0, 1.0);
             glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
         }
         else if (i == 48 || i == 60) // esquerda ou direita
@@ -632,64 +726,81 @@ void draw_layer(vector<float> vertices, float offset_x, float offset_y)
             if (i == 48)    glNormal3f(0, 1, 0);
             else    glNormal3f(0, -1, 0);
 
+            glTexCoord2f(0.0, 0.0);
             glVertex3f(vertices[i], vertices[i + 1], vertices[i + 2]);
             if (i == 48)
             {
                 glNormal3f(0, 1, 0);
+                glTexCoord2f(1.0, 0.0);
                 glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] - offset_y, vertices[i + 5]);
 
                 glNormal3f(0, 1, 0);
+                glTexCoord2f(1.0, 1.0);
                 glVertex3f(vertices[i + 6] + offset_x, vertices[i + 7] - offset_y, vertices[i + 8]);
             }
             else
             {
                 glNormal3f(0, -1, 0);
+                glTexCoord2f(1.0, 0.0);
                 glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
 
                 glNormal3f(0, -1, 0);
+                glTexCoord2f(1.0, 1.0);
                 glVertex3f(vertices[i + 6] + offset_x, vertices[i + 7] + offset_y, vertices[i + 8]);
             }
 
             if (i == 48)    glNormal3f(0, 1, 0);
             else    glNormal3f(0, -1, 0);
+            glTexCoord2f(0.0, 1.0);
             glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
         }
         else if (i == 12) // tras
         {
             glNormal3f(-1, 0, 0);
+            glTexCoord2f(0.0, 0.0);
             glVertex3f(vertices[i], vertices[i + 1], vertices[i + 2]);
 
             glNormal3f(-1, 0, 0);
+            glTexCoord2f(1.0, 0.0);
             glVertex3f(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
 
             glNormal3f(-1, 0, 0);
+            glTexCoord2f(1.0, 1.0);
             glVertex3f(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
 
             glNormal3f(-1, 0, 0);
+            glTexCoord2f(0.0, 1.0);
             glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
         }
         glEnd();
     }
 }
 
-void draw_layer2(vector<float> vertices, float offset_x, float offset_y)
+void draw_layer2(vector<float> vertices, float offset_x, float offset_y, GLuint texid)
 {
+    glBindTexture(GL_TEXTURE_2D, texid);
+
     for (unsigned int i = 0; i < vertices.size(); i += 12)
     {
         glBegin(GL_POLYGON);
         if (i == 0) // para frente
         {
-            glNormal3f(0, 1, 0);
             glColor3f(1.0f, 1.0f, .0f);
+
+            glNormal3f(0, 1, 0);
+            glTexCoord2f(0.0, 0.0);
             glVertex3f(vertices[i] + offset_x, vertices[i + 1] + offset_y, vertices[i + 2]);
 
             glNormal3f(0, 1, 0);
+            glTexCoord2f(1.0, 0.0);
             glVertex3f(vertices[i + 3] - offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
 
             glNormal3f(0, 1, 0);
+            glTexCoord2f(1.0, 1.0);
             glVertex3f(vertices[i + 6] - offset_x, vertices[i + 7] + offset_y, vertices[i + 8]);
 
             glNormal3f(0, 1, 0);
+            glTexCoord2f(0.0, 1.0);
             glVertex3f(vertices[i + 9] + offset_x, vertices[i + 10] + offset_y, vertices[i + 11]);
         }
         else if (i == 24 || i == 36) // cima ou baixo
@@ -698,19 +809,24 @@ void draw_layer2(vector<float> vertices, float offset_x, float offset_y)
             else    glNormal3f(0, 0, -1);
 
             glColor3f(.0f, .0f, 1.0f);
+            glTexCoord2f(0.0, 0.0);
             glVertex3f(vertices[i] - offset_x, vertices[i + 1] + offset_y, vertices[i + 2]);
 
             if (i == 24)    glNormal3f(0, 0, 1);
             else    glNormal3f(0, 0, -1);
-
+            glTexCoord2f(1.0, 0.0);
             glVertex3f(vertices[i + 3] + offset_x, vertices[i + 4] + offset_y, vertices[i + 5]);
 
             if (i == 24)    glNormal3f(0, 0, 1);
             else    glNormal3f(0, 0, -1);
+
+            glTexCoord2f(1.0, 1.0);
             glVertex3f(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
 
             if (i == 24)    glNormal3f(0, 0, 1);
             else    glNormal3f(0, 0, -1);
+
+            glTexCoord2f(0.0, 1.0);
             glVertex3f(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
         }
         else if (i == 48 || i == 60) // esquerda ou direita
@@ -778,8 +894,18 @@ void draw_bench(bool cima)
 
         if (i != 0)     glTranslatef(.0, .0, tamanho_campo.z);
 
-        if (!cima)   draw_layer(vertices_arquibancada, -offset_x, offset_y);
-        else    draw_layer2(vertices_arquibancada2, offset_y, -offset_x);
+        if (!cima)
+        {
+            glEnable(GL_TEXTURE_2D);
+            draw_layer(vertices_arquibancada, -offset_x, offset_y, texID[1]);
+            glDisable(GL_TEXTURE_2D);
+        }
+        else
+        {
+            glEnable(GL_TEXTURE_2D);
+            draw_layer2(vertices_arquibancada2, offset_y, -offset_x, texID[1]);
+            glDisable(GL_TEXTURE_2D);
+        }
     }
     glPopMatrix();
 }
@@ -810,12 +936,6 @@ void draw_stadium()
     glPopMatrix();
 }
 
-void set_light_stadium()
-{
-    float light_diffuse[] = { 0.5f , 0.5f , 0.5f, 1.0f }; // luz branca
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-}
-
 void displayField()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -825,13 +945,17 @@ void displayField()
 
     to_position_camera();
 
-    set_light_stadium();
+    /*glEnable(GL_TEXTURE_2D);
+    draw_quadrado(texID[0]);
+    glDisable(GL_TEXTURE_2D);*/
 
     draw_stadium();
 
     set_lights();
 
-    draw_field();
+    glEnable(GL_TEXTURE_2D);
+    draw_field2(texID[0], texID[2]);
+    glDisable(GL_TEXTURE_2D);
 
     draw_bars();
     draw_ball();
@@ -939,5 +1063,6 @@ int main(int argc, char** argv)
 
     glutMainLoop();
 
+    glDeleteTextures(1, texID);
     return 0;
 }
