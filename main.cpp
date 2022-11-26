@@ -21,7 +21,6 @@ struct tamanho {
 int grid_division_field = 13;
 int grid_division_x_field = 13;
 int grid_division_y_field = 7;
-unsigned int delay = 1000 / 60;
 
 /* Menu */
 
@@ -104,7 +103,6 @@ float espacamento_lateral = 0.1;
 
 GLfloat larguraArquibancada = tamanho_campo.x / 4;
 GLfloat larguraDegrau = larguraArquibancada;
-//GLfloat larguraDegrau = 0.4; // <- ajustar para esse
 
 vector<GLfloat> vertices_arquibancada = {
     //frente
@@ -228,6 +226,7 @@ string placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
 
 /* DIA */
 bool isDay = true;
+int horas = 3;
 
 GLuint texID[3];
 
@@ -255,22 +254,6 @@ void carregaTextura(string filePath, GLuint tex_id)
         cout << "Erro: N foi possivel carregar a textura" << filePath.c_str() << endl;
     }
     
-}
-
-void draw_quadrado(GLuint texid)
-{
-    glColor3f(1.0, 1.0, .0);
-    glBindTexture(GL_TEXTURE_2D, texid);
-    glBegin(GL_QUADS);
-    glTexCoord2f(-1.0, 0.0);
-    glVertex3f(-3.0, -3.0, 0.0);
-    glTexCoord2f(2.0, 0.0);
-    glVertex3f(3.0, -3.0, 0.0);
-    glTexCoord2f(2.0, 2.0);
-    glVertex3f(3.0, 3.0, 0.0);
-    glTexCoord2f(-1.0, 2.0);
-    glVertex3f(-3.0, 3.0, 0.0);
-    glEnd();
 }
 
 void setup_lightning()
@@ -317,8 +300,8 @@ void draw_bar(int indice)
 {
     glPushMatrix();
 
-    if (indice < 6) glTranslatef(posicoes_barras[indice] + (tamanho_barra.x / 2), posicoes_barras[indice + 1], proximidade_da_camera + posicoes_barras[indice + 2]);
-    else            glTranslatef(posicoes_barras[indice] - (tamanho_barra.x / 2), posicoes_barras[indice + 1], proximidade_da_camera + posicoes_barras[indice + 2]);
+    if (indice < 6) glTranslatef(posicoes_barras[indice] + (tamanho_barra.x / 2), posicoes_barras[indice + 1], posicoes_barras[indice + 2]);
+    else            glTranslatef(posicoes_barras[indice] - (tamanho_barra.x / 2), posicoes_barras[indice + 1], posicoes_barras[indice + 2]);
 
     glTranslatef(.0f, .0f, (tamanho_barra.z / 2.0f) + (tamanho_campo.z / 2.0f));
     glScalef(tamanho_barra.x, tamanho_barra.y, tamanho_barra.z);
@@ -331,8 +314,8 @@ void draw_barT(int indice)
 {
     glPushMatrix();
 
-    if (indice < 3) glTranslatef(posicoes_barrasT[indice] + (tamanho_barra.x / 2), posicoes_barrasT[indice + 1], proximidade_da_camera + posicoes_barrasT[indice + 2]);
-    else            glTranslatef(posicoes_barrasT[indice] - (tamanho_barra.x / 2), posicoes_barrasT[indice + 1], proximidade_da_camera + posicoes_barrasT[indice + 2]);
+    if (indice < 3) glTranslatef(posicoes_barrasT[indice] + (tamanho_barra.x / 2), posicoes_barrasT[indice + 1], posicoes_barrasT[indice + 2]);
+    else            glTranslatef(posicoes_barrasT[indice] - (tamanho_barra.x / 2), posicoes_barrasT[indice + 1], posicoes_barrasT[indice + 2]);
 
     glTranslatef(.0f, .0f, (tamanho_barra.z / 2.0f) + (tamanho_campo.z / 2.0f) + (tamanho_barra.z / 2.0f));
     glScalef(tamanho_barraT.x, tamanho_barraT.y, tamanho_barraT.z);
@@ -404,7 +387,7 @@ void draw_circles()
 
     glPushMatrix();
 
-    glTranslatef(.0, .0, proximidade_da_camera + (tamanho_campo.z / 2.0f));
+    glTranslatef(.0, .0, tamanho_campo.z / 2.0f);
 
     // circulo do meio
     points = Bresenham_circles((int)(raio * divisor), 4);
@@ -455,7 +438,7 @@ void draw_lines()
     }
 
     glPushMatrix();
-    glTranslatef(.0, .0, proximidade_da_camera + (tamanho_campo.z / 2.0f));
+    glTranslatef(.0, .0, tamanho_campo.z / 2.0f);
 
     for (auto point : points)
     {
@@ -514,12 +497,9 @@ void draw_outlines(GLuint texid)
     glEnd();
 }
 
-void draw_field2(GLuint texid, GLuint texMaisClara)
+void draw_field(GLuint texid, GLuint texMaisClara)
 {
     float division_length = tamanho_campo.x / grid_division_field;
-
-    glPushMatrix();
-    glTranslatef(.0, .0, proximidade_da_camera);
 
     for (int i = 0; i < grid_division_field; i++)
     {
@@ -564,14 +544,13 @@ void draw_field2(GLuint texid, GLuint texMaisClara)
     }
 
     draw_outlines(texid);
-    glPopMatrix();
 }
 
 void draw_ball()
 {
     glColor3f(1.0, 1.0, 1.0);
     glPushMatrix();
-    glTranslatef(bola->position_atual.x, bola->position_atual.y, proximidade_da_camera + bola->raio + (tamanho_campo.z / 2));
+    glTranslatef(bola->position_atual.x, bola->position_atual.y, bola->raio + (tamanho_campo.z / 2));
 
     glPushMatrix();
 
@@ -595,9 +574,19 @@ void draw_scoreBoard()
 {
     glColor3f(1.0, 1.0, 1.0);
     placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
-    glRasterPos3f(-0.05f, 0.8f, 0.5f + proximidade_da_camera);
+    glRasterPos3f(-0.05f, 0.8f, 0.5f);
 
     draw_text(placar);
+}
+
+void draw_hour()
+{
+    glColor3f(1.0, 1.0, 1.0);
+    glRasterPos3f(-0.8f, 0.8f, 0.5f);
+    
+    string horario = to_string(horas) + ":" + to_string(0) + to_string(0);
+
+    draw_text(horario);
 }
 
 void to_position_camera()
@@ -616,12 +605,6 @@ void to_position_camera()
     }
 }
 
-void set_light2()
-{
-    float light_diffuse[] = { 0.1f , 0.1f , 0.1f, 1.0f }; // luz branca
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-}
-
 void set_lights()
 {
     glEnable(GL_LIGHTING);
@@ -633,12 +616,6 @@ void set_lights()
 
     float light_ambient[] = { 0.1f, 0.1f, 0.1f, 1.0f };
     float light_position[] = { 100.0f, 0.0f, 0.0f, 1.0f };
-
-    //float especularidade[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-    //int especMaterial = 60;
-
-    //glMaterialfv(GL_FRONT, GL_SPECULAR, especularidade);
-    //glMateriali(GL_FRONT, GL_SHININESS, especMaterial);
 
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, light_ambient);
 
@@ -663,6 +640,7 @@ void set_lights()
     }
 
     cout << "Eh dia? " << isDay << " t: " << t << " r: " << r << endl;
+    //cout << "horas: " << horas << endl;
 
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
@@ -912,9 +890,6 @@ void draw_bench(bool cima)
 
 void draw_stadium()
 {
-    glPushMatrix();
-    glTranslatef(0, 0, proximidade_da_camera);
-
     // esquerda
     draw_bench(false);
 
@@ -932,8 +907,6 @@ void draw_stadium()
     glScalef(1, -1, 1); // espelhar
     draw_bench(true);
     glPopMatrix();
-
-    glPopMatrix();
 }
 
 void displayField()
@@ -945,26 +918,27 @@ void displayField()
 
     to_position_camera();
 
-    /*glEnable(GL_TEXTURE_2D);
-    draw_quadrado(texID[0]);
-    glDisable(GL_TEXTURE_2D);*/
-
+    set_lights();
+    
+    glPushMatrix();
+    glTranslatef(0, 0, proximidade_da_camera);
     draw_stadium();
 
-    set_lights();
-
     glEnable(GL_TEXTURE_2D);
-    draw_field2(texID[0], texID[2]);
+    draw_field(texID[0], texID[2]);
     glDisable(GL_TEXTURE_2D);
 
     draw_bars();
     draw_ball();
 
     draw_scoreBoard();
+    draw_hour();
     draw_lines();
     draw_circles();
+    glPopMatrix();
 
     glutSwapBuffers();
+    glutPostRedisplay();
 }
 
 void displayMenu()
@@ -1043,8 +1017,9 @@ void specialKeys_handler(int key, int x, int y)
 
 void timer(int)
 {
-    glutPostRedisplay();
-    glutTimerFunc(delay, timer, 0);
+    horas++;
+    if (horas == 25)    horas = 1;
+    glutTimerFunc(1000, timer, 0);
 }
 
 int main(int argc, char** argv)
