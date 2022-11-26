@@ -101,7 +101,7 @@ void carregaTextura(string filePath, GLuint tex_id)
     stbi_set_flip_vertically_on_load(true);
     imgData = stbi_load(filePath.c_str(), &largura, &altura, &canais, 4);
 
-    if(imgData)
+    if (imgData)
     {
         glBindTexture(GL_TEXTURE_2D, tex_id);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, largura, altura, 0, GL_RGBA, GL_UNSIGNED_BYTE, imgData);
@@ -117,7 +117,7 @@ void carregaTextura(string filePath, GLuint tex_id)
     {
         cout << "Erro: N foi possivel carregar a textura" << filePath.c_str() << endl;
     }
-    
+
 }
 
 void setup_lightning()
@@ -143,7 +143,7 @@ void init(void) {
     glLoadIdentity();
     glFrustum(-1, 1, -1, 1, 2, 10);
     glMatrixMode(GL_MODELVIEW);
-    
+
 }
 
 void connect_dots(vector<pair<int, int>> points, float divisor)
@@ -382,7 +382,7 @@ void displayField()
     to_position_camera();
 
     set_lights();
-    
+
     glPushMatrix();
     glTranslatef(0, 0, proximidade_da_camera);
     campo->draw_stadium(texID);
@@ -390,6 +390,7 @@ void displayField()
     glEnable(GL_TEXTURE_2D);
     campo->draw_field(texID[0], texID[2]);
     glDisable(GL_TEXTURE_2D);
+    campo->draw_bars();
 
     draw_ball();
 

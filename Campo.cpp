@@ -133,7 +133,6 @@ void Campo::draw_field(GLuint texid, GLuint texMaisClara)
     }
 
     draw_outlines(texid);
-    draw_bars();
 }
 
 /* Arquibancada */

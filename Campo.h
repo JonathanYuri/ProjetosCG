@@ -17,6 +17,8 @@ public:
 
     void draw_stadium(GLuint texID[]);
 
+    void draw_bars();
+
 private:
     int grid_division_field = 13;
 
@@ -66,8 +68,6 @@ private:
     void draw_bar(int indice);
 
     void draw_barT(int indice);
-
-    void draw_bars();
 
     void draw_outlines(GLuint texid);
 
