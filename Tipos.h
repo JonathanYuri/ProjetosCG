@@ -7,3 +7,9 @@ struct position
 	GLfloat y;
 	GLfloat z;
 };
+
+struct tamanho {
+	GLfloat x;
+	GLfloat y;
+	GLfloat z;
+};
