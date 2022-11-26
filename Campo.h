@@ -74,8 +74,8 @@ private:
     /* Arquibancada */
 
     int niveis = 7;
-    float espaco_arquibancada = 0.05;
-    float espacamento_lateral = 0.1;
+    float espaco_arquibancada = 0.05f;
+    float espacamento_lateral = 0.1f;
 
     GLfloat larguraArquibancada = tamanho_campo.x / 4;
     GLfloat larguraDegrau = larguraArquibancada;

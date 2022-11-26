@@ -350,7 +350,7 @@ void Campo::draw_layer2(vector<float> vertices, float offset_x, float offset_y, 
 void Campo::draw_bench(bool cima, GLuint texID[])
 {
     int niveis = 7;
-    float espaco_arquibancada = 0.05;
+    float espaco_arquibancada = 0.05f;
 
     float offset_x = .0f, offset_y = .0f;
 
