@@ -83,11 +83,14 @@ GLfloat lines[][4] = {
 int pontuacaoA = 0;
 int pontuacaoB = 0;
 
-string placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
-
 /* DIA */
 bool isDay = true;
+
 int horas = 0;
+
+float verde = 0.0f;
+float azul = 0.2f;
+float razao = 0.8f / 12.0f; // em 12 horas tenho que acabar com 0.8 + 0.2 = 1.0f
 
 GLuint texID[3];
 
@@ -300,20 +303,17 @@ void draw_text(string str)
 void draw_scoreBoard()
 {
     glColor3f(0.0, 0.0, 0.0);
-    placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
     glRasterPos3f(-0.05f, 0.8f, 0.5f);
 
-    draw_text(placar);
+    draw_text(to_string(pontuacaoA) + " x " + to_string(pontuacaoB));
 }
 
 void draw_hour()
 {
     glColor3f(0.0, 0.0, 0.0);
     glRasterPos3f(-0.8f, 0.8f, 0.5f);
-    
-    string horario = to_string(horas) + ":" + to_string(0) + to_string(0);
 
-    draw_text(horario);
+    draw_text(to_string(horas) + ":" + to_string(0) + to_string(0));
 }
 
 void to_position_camera()
@@ -351,13 +351,11 @@ void set_lights()
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 
     glPushMatrix();
-    float t = 1.0f * glutGet(GLUT_ELAPSED_TIME) / 24000.0f;
-
-    // a cada 24 segundos ta completando a volta
+    float t = 1.0f * glutGet(GLUT_ELAPSED_TIME) / 24000.0f;    // a cada 24 segundos ta completando a volta
     glRotatef(360 * t, 0.0f, 1.0f, 0.0f);
     int r = int(360 * t) % 360;
 
-    if (r >= 180 && r <= 360)
+    if (r >= 180 && r <= 360)   //cout << "Eh dia? " << isDay << " t: " << t << " r: " << r << endl;
     {
         if (isDay) isDay = !isDay;
     }
@@ -366,10 +364,11 @@ void set_lights()
         if (!isDay) isDay = !isDay;
     }
 
-    //cout << "Eh dia? " << isDay << " t: " << t << " r: " << r << endl;
-    //cout << "horas: " << horas << endl;
-
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+    //glClearColor(.0, .0, 0.2, 1.0); <- noite
+    //glClearColor(.0, 0.5, 1.0, 1.0); <- dia
+    glClearColor(.0, verde, azul, 1.0f);
 
     glPopMatrix();
 }
@@ -377,7 +376,6 @@ void set_lights()
 void displayField()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(69.0f / 255.0f, 39.0f / 255.0f, .0f / 255.0f, 1.0f); // marrom
 
     glLoadIdentity();
 
@@ -483,6 +481,18 @@ void timer(int)
 {
     horas++;
     if (horas == 25)    horas = 1;
+
+    if (horas <= 12)
+    {
+        azul += razao;
+        verde += razao / 2.0f;
+    }
+    else
+    {
+        azul -= razao;
+        verde -= razao / 2.0f;
+    }
+
     glutTimerFunc(1000, timer, 0);
 }
 
