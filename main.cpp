@@ -226,7 +226,7 @@ string placar = to_string(pontuacaoA) + " x " + to_string(pontuacaoB);
 
 /* DIA */
 bool isDay = true;
-int horas = 3;
+int horas = 0;
 
 GLuint texID[3];
 
@@ -639,7 +639,7 @@ void set_lights()
         if (!isDay) isDay = !isDay;
     }
 
-    cout << "Eh dia? " << isDay << " t: " << t << " r: " << r << endl;
+    //cout << "Eh dia? " << isDay << " t: " << t << " r: " << r << endl;
     //cout << "horas: " << horas << endl;
 
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
