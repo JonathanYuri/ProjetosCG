@@ -8,7 +8,7 @@ public:
 
 	GLfloat qntRotate = 0.1f;
 
-	position position_inicial = { 0.0f, 0.0f, 6.2f };
+	position position_inicial = { 0.0f, 0.0f, 7.0f };
 	position position_atual = position_inicial;
 
 	position targetInicial = { 0.0f, 0.0f, 0.5f };

@@ -346,7 +346,7 @@ void Campo::draw_layer2(vector<float> vertices, float offset_x, float offset_y, 
     }
 }
 
-void Campo::draw_bench(bool cima, GLuint texID[])
+void Campo::draw_bench(bool cima, GLuint texID)
 {
     int niveis = 7;
     float espaco_arquibancada = 0.05f;
@@ -365,20 +365,20 @@ void Campo::draw_bench(bool cima, GLuint texID[])
         if (!cima)
         {
             glEnable(GL_TEXTURE_2D);
-            draw_layer(vertices_arquibancada, -offset_x, offset_y, texID[1]);
+            draw_layer(vertices_arquibancada, -offset_x, offset_y, texID);
             glDisable(GL_TEXTURE_2D);
         }
         else
         {
             glEnable(GL_TEXTURE_2D);
-            draw_layer2(vertices_arquibancada2, offset_y, -offset_x, texID[1]);
+            draw_layer2(vertices_arquibancada2, offset_y, -offset_x, texID);
             glDisable(GL_TEXTURE_2D);
         }
     }
     glPopMatrix();
 }
 
-void Campo::draw_stadium(GLuint texID[])
+void Campo::draw_stadium(GLuint texID)
 {
     // esquerda
     draw_bench(false, texID);

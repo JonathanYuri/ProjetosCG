@@ -15,9 +15,9 @@ public:
 
     void draw_field(GLuint texid, GLuint texMaisClara);
 
-    void draw_stadium(GLuint texID[]);
-
     void draw_bars();
+
+    void draw_stadium(GLuint texID);
 
 private:
     int grid_division_field = 13;
@@ -160,6 +160,6 @@ private:
 
     void draw_layer2(vector<float> vertices, float offset_x, float offset_y, GLuint texid);
 
-    void draw_bench(bool cima, GLuint texID[]);
+    void draw_bench(bool cima, GLuint texID);
 };
 

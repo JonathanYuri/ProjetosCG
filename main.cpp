@@ -85,14 +85,16 @@ int pontuacaoB = 0;
 
 /* DIA */
 bool isDay = true;
-
 int horas = 0;
 
 float verde = 0.0f;
 float azul = 0.2f;
 float razao = 0.8f / 12.0f; // em 12 horas tenho que acabar com 0.8 + 0.2 = 1.0f
 
-GLuint texID[3];
+GLuint texField[4];
+GLuint texFieldAtual[2];
+GLuint texArquibancada[2];
+GLuint texArquibancadaAtual[1];
 
 void carregaTextura(string filePath, GLuint tex_id)
 {
@@ -131,11 +133,22 @@ void init(void) {
     glClearColor(.0, .0, .0, 1.0);
     glEnable(GL_DEPTH_TEST);
 
+    //glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glGenTextures(3, texID);
-    carregaTextura("./Texturas/grama_escura.png", texID[0]);
-    carregaTextura("./Texturas/1.png", texID[1]);
-    carregaTextura("./Texturas/grama_clara.png", texID[2]);
+    glGenTextures(2, texArquibancada);
+    glGenTextures(4, texField);
+    carregaTextura("./Texturas/grama_escura_dia.png", texField[0]);
+    carregaTextura("./Texturas/grama_clara_dia.png", texField[1]);
+    carregaTextura("./Texturas/grama_escura_noite.png", texField[2]);
+    carregaTextura("./Texturas/grama_clara_noite.png", texField[3]);
+
+    carregaTextura("./Texturas/arquibancada_dia.png", texArquibancada[0]);
+    carregaTextura("./Texturas/arquibancada_noite.png", texArquibancada[1]);
+
+    texFieldAtual[0] = texField[2];
+    texFieldAtual[1] = texField[3];
+
+    texArquibancadaAtual[0] = texArquibancada[1];
 
     setup_lightning();
 
@@ -143,7 +156,6 @@ void init(void) {
     glLoadIdentity();
     glFrustum(-1, 1, -1, 1, 2, 10);
     glMatrixMode(GL_MODELVIEW);
-
 }
 
 void connect_dots(vector<pair<int, int>> points, float divisor)
@@ -353,16 +365,6 @@ void set_lights()
     glPushMatrix();
     float t = 1.0f * glutGet(GLUT_ELAPSED_TIME) / 24000.0f;    // a cada 24 segundos ta completando a volta
     glRotatef(360 * t, 0.0f, 1.0f, 0.0f);
-    int r = int(360 * t) % 360;
-
-    if (r >= 180 && r <= 360)   //cout << "Eh dia? " << isDay << " t: " << t << " r: " << r << endl;
-    {
-        if (isDay) isDay = !isDay;
-    }
-    else
-    {
-        if (!isDay) isDay = !isDay;
-    }
 
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
@@ -385,10 +387,10 @@ void displayField()
 
     glPushMatrix();
     glTranslatef(0, 0, proximidade_da_camera);
-    campo->draw_stadium(texID);
+    campo->draw_stadium(texArquibancadaAtual[0]);
 
     glEnable(GL_TEXTURE_2D);
-    campo->draw_field(texID[0], texID[2]);
+    campo->draw_field(texFieldAtual[0], texFieldAtual[1]);
     glDisable(GL_TEXTURE_2D);
     campo->draw_bars();
 
@@ -478,11 +480,14 @@ void specialKeys_handler(int key, int x, int y)
     camera->move(key);
 }
 
-void timer(int)
+void move_timer()
 {
     horas++;
     if (horas == 25)    horas = 1;
+}
 
+void change_background_color()
+{
     if (horas <= 12)
     {
         azul += razao;
@@ -493,6 +498,32 @@ void timer(int)
         azul -= razao;
         verde -= razao / 2.0f;
     }
+}
+
+void change_texture()
+{
+    if (horas == 6) // eh dia
+    {
+        texFieldAtual[0] = texField[0];
+        texFieldAtual[1] = texField[1];
+
+        texArquibancadaAtual[0] = texArquibancada[0];
+    }
+
+    if (horas == 19) // noite
+    {
+        texFieldAtual[0] = texField[2];
+        texFieldAtual[1] = texField[3];
+
+        texArquibancadaAtual[0] = texArquibancada[1];
+    }
+}
+
+void timer(int)
+{
+    move_timer();
+    change_background_color();
+    change_texture();
 
     glutTimerFunc(1000, timer, 0);
 }
@@ -513,6 +544,9 @@ int main(int argc, char** argv)
 
     glutMainLoop();
 
-    glDeleteTextures(1, texID);
+    glDeleteTextures(1, texField);
+    glDeleteTextures(1, texFieldAtual);
+    glDeleteTextures(1, texArquibancada);
+    glDeleteTextures(1, texArquibancadaAtual);
     return 0;
 }
