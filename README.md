@@ -17,3 +17,6 @@
 ```
 make
 ```
+<h4>Referências</h4>
+
+https://youtu.be/AKz52bZb-9I (Textura)
